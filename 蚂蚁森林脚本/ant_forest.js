@@ -1,13 +1,17 @@
+//检查是否开启无障碍服务，若未开启则等待开启
 auto.waitFor();
 //0-9坐标映射表
 var pas_table = [[550, 1800], [250, 1200], [550, 1200], 
-                    [850, 1200], [250, 1400], [550, 1400], 
-                    [850, 1400], [250, 1600], [550, 1600], 
-                    [850, 1600]];
+                [850, 1200], [250, 1400], [550, 1400], 
+                [850, 1400], [250, 1600], [550, 1600], 
+                [850, 1600]];
 const WIDTH = Math.min(device.width, device.height);
 const HEIGHT = Math.max(device.width, device.height);
 //测试机像素为1080*2340
+//不要修改该行代码
 setScreenMetrics(1080, 2340);
+//不同像素的机型会对应缩放
+
 //设置循环收取能量的时间范围
 var startTime = "7:00";
 var endTime = "7:40";
@@ -99,11 +103,14 @@ function get_screencapture_permission()
  */
 function register_exit_event()
 {
-    events.observeKey();
-    events.onKeyDown("volume_down", function(event){
-        toastLog("音量下键被按下，脚本退出");
-        exit();
+    var thread = threads.start(function(){
+        events.observeKey();
+        events.onKeyDown("volume_down", function(event){
+            toastLog("音量下键被按下，脚本退出");
+            exit();
+        });
     });
+    return thread;
 }
 /**
  * 找到支付宝首页
@@ -362,7 +369,9 @@ function main()
     //获取截图权限
     get_screencapture_permission();
     //注册"音量下键按下退出脚本"事件
-    register_exit_event();
+    var exit_event = register_exit_event();
+    //等待退出事件子线程执行
+    exit_event.waitFor();
     do
     {
         //打开支付宝
