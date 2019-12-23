@@ -1,90 +1,21 @@
 //检查是否开启无障碍服务，若未开启则等待开启
 auto.waitFor();
-//0-9坐标映射表
-var pas_table = [[550, 1800], [250, 1200], [550, 1200], 
-                [850, 1200], [250, 1400], [550, 1400], 
-                [850, 1400], [250, 1600], [550, 1600], 
-                [850, 1600]];
-const WIDTH = Math.min(device.width, device.height);
-const HEIGHT = Math.max(device.width, device.height);
+
 //测试机像素为1080*2340
 //不要修改该行代码
 setScreenMetrics(1080, 2340);
 //不同像素的机型会对应缩放
 
 //设置循环收取能量的时间范围
-var startTime = "7:00";
-var endTime = "7:40";
+var g_startTime = "7:00";
+var g_endTime = "7:40";
 //默认关闭循环运行
-var is_loop = false;
-
+var g_is_loop = false;
+//锁屏密码
+var g_password = "0514";
 //主程序入口
 main();
-/**
- * 判断设备是否解锁
- */
-function is_locked()
-{
-    var keyguard_manager = context.getSystemService(context.KEYGUARD_SERVICE);
-    var result = keyguard_manager.isKeyguardLocked();
-    return result;
-}
-/**
- * 模拟解锁
- */
-function input_password(pasword)
-{
-    for(var i = 0; i < pasword.length; i++)
-    {
-        click(pas_table[pasword[i]][0], pas_table[pasword[i]][1]);
-        sleep(500);
-    }
-    if(!is_locked())
-        return true;
-    else
-        return false;
-}
-//解锁设备
-function unlock()
-{
-    if(!device.isScreenOn())
-    {
-        //唤醒屏幕
-        device.wakeUp();
-        sleep(500);          
-    }
-    //如未解锁，则输入密码解锁
-    if(is_locked())
-    {
-        //由于MIUI的解锁有变速检测，因此要点开时间以进入密码界面
-        if(device.brand === 'Xiaomi')
-        {
-            //滑出状态栏
-            swipe(WIDTH / 2, 0, WIDTH / 2, HEIGHT, 500);
-            //点击时间位置
-            click(200, 200);
-        }
-        else
-        {
-            swipe(WIDTH / 2, HEIGHT, WIDTH / 2, 0, 500);
-        }
-        sleep(500);
-        //假设密码是1234
-        if(input_password("1234"))
-        {
-            toastLog("解锁成功");
-            sleep(1000);
-            //跳到主界面
-            home();
-        }
-        else
-        {
-            toastLog("解锁失败，退出脚本");
-            exit();
-        }       
-    }
-    console.log("该设备为：" + device.brand + " " + device.model);
-}
+
 /**
  * 请求截图权限
  */
@@ -340,8 +271,8 @@ function check_time()
     var now = new Date();
     var hour = now.getHours();
     var minu = now.getMinutes();
-    var time_a = startTime.split(":");
-    var time_b = endTime.split(":");
+    var time_a = g_startTime.split(":");
+    var time_b = g_endTime.split(":");
     var timea = 60 * Number(time_a[0]) + Number(time_a[1]);
     var timeb = 60 * Number(time_b[0]) + Number(time_b[1]);
     var time  = 60 * hour + minu;
@@ -363,8 +294,12 @@ function check_time()
  */
 function main()
 {
+    var unlock = require("./Modules/MODULE_UNLOCK");
     //解锁设备
-    unlock();
+    if(!unlock.unlock(g_password))
+    {
+        exit();
+    }
     sleep(3000);
     //获取截图权限
     get_screencapture_permission();
@@ -380,7 +315,7 @@ function main()
         entrance_antforest();
         //运行结束
         run_done();
-    }while(check_time() && is_loop)
+    }while(check_time() && g_is_loop)
 
     //退出脚本
     toastLog("退出脚本");
