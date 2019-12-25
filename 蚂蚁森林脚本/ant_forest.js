@@ -27,7 +27,7 @@ function get_screencapture_permission()
         exit();
     }
     console.log("获取截图权限成功，等待支付宝启动");
-    sleep(2000);
+    sleep(1000);
 }
 /**
  * 注册退出事件
@@ -90,9 +90,9 @@ function open_alipay()
 function entrance_antforest()
 {
     //模拟刷新页面
-    swipe(520,1200,520,600,500);
+    swipe(520, 200, 520, 1200, 500);
     sleep(500);
-    swipe(520,600,520,1200,500);
+    swipe(520, 200, 520, 1200, 500);
 
     if(!textEndsWith("蚂蚁森林").exists() && !descEndsWith("蚂蚁森林").exists())
     {
@@ -107,22 +107,20 @@ function entrance_antforest()
     //进入蚂蚁森林主页
     console.log("进入蚂蚁森林主页");
     /*开始能量收集*/
-    sleep(1000);
-
     //收集自己的能量
     click_by_name("克");
     toastLog("自己能量收集完成");
     sleep(1000);
 
     //模拟向上滑动以找到"查看更多好友"
-    swipe(520,1800,520,300,500);
+    swipe(520, 1800, 520, 300, 500);
     sleep(500);
-    swipe(520,1800,520,300,500);
+    swipe(520, 1800, 520, 300, 500);
 
     //进入能量排行榜
-    toastLog("点击查看更多好友");
-    sleep(1000);
+    console.log("点击查看更多好友");
     click_by_name("查看更多好友");
+    sleep(1000);
     //进入好友排行榜页面
     entrance_friends();
 }
@@ -148,11 +146,10 @@ function click_by_name(click_name)
             sleep(500);
         });
     }
-    if(descEndsWith(click_name).exists() && clicked == false)
+    else if(descEndsWith(click_name).exists() && clicked == false)
     {
         descEndsWith(click_name).find().forEach(function(item){
             var pos = item.bounds();
-            log(pos);
             if(pos.centerX() < 0 || pos.centerY() < 0)
             {
                 return false;
@@ -206,6 +203,25 @@ function get_has_energy_friends()
         return null;
     }
 }
+
+/**
+ * 检测是否到达排行榜底部
+ */
+function arrive_bottom()
+{
+    var img = get_captureimg();
+    //分别是白色、浅灰色、深灰色
+    var p = null;
+    p = images.findMultiColors(img, "#F5F5F5", [[0, -40, "#FFFFFF"], [0, 20, "#999999"]], {
+        region : [600, 2000],
+        threshold : 0.9
+    });
+    if(p != null)
+        return true;
+    else
+        return false;
+}
+
 /**
  * 进入好友排行榜
  */
@@ -218,38 +234,35 @@ function entrance_friends()
     //不断滑动，查找好友
     while(epoint == null)
     {
-        swipe(520,1800,520,800,500);
+        swipe(520, 1800, 520, 800, 500);
         sleep(500);
         epoint = get_has_energy_friends();
         i++;
         //如果检测到结尾，同时也没有可收能量的好友，那么结束收取
-        //支付宝更新后"没有更多了"不能查找到，因此该if永远不会满足，但不影响程序运行，
-        //等待后续改进
-        if(textEndsWith("没有更多了").exists() || descEndsWith("没有更多了").exists())
+        if(epoint == null && arrive_bottom())
         {
-            if(epoint == null)
-            {
-                return true;
-            }
+            toastLog("所有好友能量收集完成");
+            return true;
         }
         //如果连续32次都未检测到可收集好友,无论如何停止查找
         if(i >= 32)
         {
-            //toastLog("程序可能出错, 连续" + i + "次未检测到可收集好友");
-            toastLog("所有好友能量收集完成");
+            toastLog("程序可能出错, 连续" + i + "次未检测到可收集好友");
             return false;
         }
     }
     //找到好友，进入好友森林
-    click(epoint.x, epoint.y + 20);
-    sleep(3000);
-    //确认进入了好友森林
-    if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
+    if(click(epoint.x, epoint.y))
     {
-        click_by_name("克");
+        sleep(2000);
+        //确认进入了好友森林
+        if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
+        {
+            click_by_name("克");
+        }
+        //返回排行榜
+        back();
     }
-    //返回排行榜
-    back();
     //递归调用
     entrance_friends();
 }
@@ -300,7 +313,7 @@ function main()
     {
         exit();
     }
-    sleep(3000);
+    sleep(1000);
     //获取截图权限
     get_screencapture_permission();
     //注册"音量下键按下退出脚本"事件
