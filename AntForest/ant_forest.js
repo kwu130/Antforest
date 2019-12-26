@@ -6,13 +6,16 @@ auto.waitFor();
 setScreenMetrics(1080, 2340);
 //不同像素的机型会对应缩放
 
-//设置循环收取能量的时间范围
-var g_startTime = "7:00";
-var g_endTime = "7:40";
-//默认关闭循环运行
-var g_is_loop = false;
-//锁屏密码
-var g_password = "0514";
+//读取配置文件，设置相应参数
+var config = storages.create("ant_forest_config");
+
+var g_startTime   = config.get('start_time', "7:00");
+var g_endTime     = config.get('end_time', "7:40");
+var g_password    = config.get('password', "0514");
+var g_is_cycle    = config.get('is_cycle', "false");
+//帮收能量暂时还未实现
+//var g_help_friend = config.get('help_friend', "false");
+
 //主程序入口
 main();
 
@@ -26,7 +29,7 @@ function get_screencapture_permission()
         toastLog("获取截图权限失败，脚本退出");
         exit();
     }
-    console.log("获取截图权限成功，等待支付宝启动");
+    toastLog("获取截图权限成功，等待支付宝启动");
     sleep(1000);
 }
 /**
@@ -71,7 +74,6 @@ function find_homepage()
  */
 function open_alipay()
 {//请确保打开了"Auto.js"的后台弹出界面权限
-    toastLog("等待支付宝启动");
     launchApp("支付宝");
     sleep(3000);
     //寻找支付宝首页
@@ -101,16 +103,15 @@ function entrance_antforest()
     }
     else
     {
+        //进入蚂蚁森林主页
+        toastLog("进入蚂蚁森林主页");
         click_by_name("蚂蚁森林");
-        sleep(1000);
+        sleep(3000);
     }
-    //进入蚂蚁森林主页
-    console.log("进入蚂蚁森林主页");
     /*开始能量收集*/
     //收集自己的能量
     click_by_name("克");
     toastLog("自己能量收集完成");
-    sleep(1000);
 
     //模拟向上滑动以找到"查看更多好友"
     swipe(520, 1800, 520, 300, 500);
@@ -126,6 +127,7 @@ function entrance_antforest()
 }
 /**
  * 根据传入参数点击 
+ * @param {*} click_name 要点击的文本
  */
 function click_by_name(click_name)
 {
@@ -188,11 +190,19 @@ function get_has_energy_friends()
 {
     var img = get_captureimg();
     var p = null;
-    //区分倒计时和可收取能量的小手
+    //查找可收取能量的小手
     //"#ffffff"为白色， "#1da06d"为深绿色
     p = images.findMultiColors(img, "#ffffff", [[0, -35, "#1da06d"], [0, 23, "#1da06d"]], {
         region: [1073, 400 , 1, 1800]
     });
+    /*
+    //TODO:
+    //if(g_help_friend)
+    //{
+    //      查找爱心图标
+    //}
+    //如果找到则返回
+    */
     if(p != null)
     {
         toastLog("找到好友");
@@ -228,6 +238,7 @@ function arrive_bottom()
 function entrance_friends()
 {
     var i = 0;
+    sleep(500);
     var epoint = get_has_energy_friends();
 
     //确保当前操作是在排行榜界面
@@ -328,7 +339,7 @@ function main()
         entrance_antforest();
         //运行结束
         run_done();
-    }while(check_time() && g_is_loop)
+    }while(g_is_cycle && check_time())
 
     //退出脚本
     toastLog("退出脚本");

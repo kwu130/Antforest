@@ -64,6 +64,7 @@ function is_locked()
 
 /**
  * 模拟解锁
+ * @param {*} pasword 锁屏密码
  */
 function try_password(pasword)
 {
