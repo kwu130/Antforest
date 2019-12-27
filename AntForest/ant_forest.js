@@ -303,8 +303,6 @@ function check_time()
     if(time >= timea && time <= timeb)
     {
         console.log("时间仍在监控范围内");
-        //暂停1分钟
-        sleep(60 * 1000);
         return true;
     }
     else
