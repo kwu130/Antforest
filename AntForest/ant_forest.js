@@ -282,7 +282,7 @@ function entrance_friends()
  */
 function run_done()
 {
-    toastLog("一次运行结束");
+    console.log("一次运行结束");
     back();
     sleep(1000);
     back();
