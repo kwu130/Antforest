@@ -144,7 +144,7 @@ function click_by_name(click_name)
                 click(pos.centerX(), pos.centerY());
                 clicked = true;
             } 
-            //sleep(500);
+            sleep(500);
         });
     }
     else if(descEndsWith(click_name).exists() && clicked == false)
@@ -160,7 +160,7 @@ function click_by_name(click_name)
                 click(pos.centerX(), pos.centerY());
                 clicked = true;
             } 
-            //sleep(500);
+            sleep(500);
         });
     }
     return clicked;
@@ -354,13 +354,13 @@ function print_configure_info()
  */
 function main()
 {
-    var unlock = require("./Modules/MODULE_UNLOCK");
-    //解锁设备
-    if(!unlock.unlock(g_password))
-    {
-        exit();
-    }
-    sleep(1000);
+    // var unlock = require("./Modules/MODULE_UNLOCK");
+    // //解锁设备
+    // if(!unlock.unlock(g_password))
+    // {
+    //     exit();
+    // }
+    // sleep(1000);
     //获取截图权限
     get_screencapture_permission();
     //注册"音量下键按下退出脚本"事件
