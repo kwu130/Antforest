@@ -138,7 +138,8 @@ function draw_view() {
 
             if(shour*60 + sminu >= ehour*60 + eminu)
             {
-                toastLog("结束时间小于开始时间，请重新选择");
+                toast("结束时间小于开始时间，请重新选择");
+                console.warn("结束时间小于开始时间，请重新选择");
                 return false;
             }
             else

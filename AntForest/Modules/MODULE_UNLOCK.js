@@ -18,7 +18,7 @@ module.exports =
                 device.wakeUp();
                 sleep(500);          
             }
-            console.log("该设备为：" + device.brand + " " + device.model);
+            console.info("该设备为：" + device.brand + " " + device.model);
             //如未解锁，则输入密码解锁
             if(is_locked())
             {

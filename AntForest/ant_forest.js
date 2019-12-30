@@ -7,13 +7,13 @@ setScreenMetrics(1080, 2340);
 //不同像素的机型会对应缩放
 
 //读取配置文件，设置相应参数
-var config = storages.create("ant_forest_config");
+var config = require("./Modules/MODULE_CONFIGURE");
 
-var g_startTime   = config.get('start_time', "7:00");
-var g_endTime     = config.get('end_time', "7:40");
-var g_password    = config.get('password', "0514");
-var g_is_cycle    = config.get('is_cycle', "false");
-var g_help_friend = config.get('help_friend', "false");
+var g_startTime   = config.startTime;
+var g_endTime     = config.endTime;
+var g_password    = config.password;
+var g_is_cycle    = config.is_cycle;
+var g_help_friend = config.help_friend;
 
 //主程序入口
 main();
@@ -25,7 +25,8 @@ function get_screencapture_permission()
 {//建议永久开启截图权限，在"取消"按键的上方，部分设备看不见，但是是存在的可以点击
     if(!requestScreenCapture())
     {
-        toastLog("获取截图权限失败，脚本退出");
+        toast("获取截图权限失败，脚本退出");
+        console.error("获取截图权限失败，脚本退出");
         exit();
     }
     toastLog("获取截图权限成功，等待支付宝启动");
@@ -39,7 +40,8 @@ function register_exit_event()
     var thread = threads.start(function(){
         events.observeKey();
         events.onKeyDown("volume_down", function(event){
-            toastLog("音量下键被按下，脚本退出");
+            toast("音量下键被按下，脚本退出");
+            console.warn("音量下键被按下，脚本退出");
             exit();
         });
     });
@@ -60,7 +62,8 @@ function find_homepage()
     }
     if(i >= 5)
     {
-        toastLog("寻找支付宝首页失败，脚本退出");
+        toast("寻找支付宝首页失败，脚本退出");
+        console.error("寻找支付宝首页失败，脚本退出");
         sleep(2000);
         return false;
     }
@@ -110,7 +113,8 @@ function entrance_antforest()
     /*开始能量收集*/
     //收集自己的能量
     click_by_name("克");
-    toastLog("自己能量收集完成");
+    toast("自己能量收集完成");
+    console.info("自己能量收集完成");
 
     //模拟向上滑动以找到"查看更多好友"
     swipe(520, 1800, 520, 300, 500);
@@ -189,7 +193,8 @@ function get_captureimg()
     sleep(100);
     if(img == null || typeof(img) == "undefined")
     {
-        toastLog("截图失败，脚本退出");
+        toast("截图失败，脚本退出");
+        console.error("截图失败，脚本退出");
         exit();
     }
     else
@@ -213,7 +218,7 @@ function get_has_energy_friends()
 
     if(hand != null)
     {
-        console.log("找到可收取能量好友");
+        console.info("找到**可收取**好友");
         return [hand, "hand"];
     }
     if(g_help_friend)
@@ -226,7 +231,7 @@ function get_has_energy_friends()
 
         if(heart != null)
         {
-            console.log("找到可帮收能量好友");
+            console.info("找到**可帮收**好友");
             return [heart, "heart"];
         }
     }
@@ -278,7 +283,7 @@ function entrance_friends()
         //如果连续32次都未检测到可收集好友,无论如何停止查找
         if(i >= 32)
         {
-            toastLog("程序可能出错, 连续" + i + "次未检测到可收集好友");
+            console.error("程序可能出错, 连续" + i + "次未检测到可收集好友");
             return false;
         }
     }
@@ -325,12 +330,12 @@ function check_time()
     var time  = 60 * hour + minu;
     if(time >= timea && time <= timeb)
     {
-        console.log("时间仍在监控范围内");
+        console.log("当前时间仍在监控范围内");
         return true;
     }
     else
     {
-        console.log("时间不在监控范围内");
+        console.log("当前时间不在监控范围内");
         return false;
     }
 }
@@ -342,25 +347,26 @@ function print_configure_info()
     console.log("-----------------------------------------"); 
     if(g_is_cycle)
     {
-        console.log("循环执行开始时间：" + g_startTime);
-        console.log("循环执行结束时间：" + g_endTime);
+        console.info("循环执行开始时间：" + g_startTime);
+        console.info("循环执行结束时间：" + g_endTime);
     }
-    let help_friend = g_help_friend ? "是":"否";
-    console.log("是否帮助好友收取：" + help_friend)
+    let yes_or_no = g_help_friend ? "是":"否";
+    console.info("是否帮助好友收取：" + yes_or_no)
     console.log("-----------------------------------------"); 
 }
+
 /**
  * 主函数
  */
 function main()
 {
-    // var unlock = require("./Modules/MODULE_UNLOCK");
-    // //解锁设备
-    // if(!unlock.unlock(g_password))
-    // {
-    //     exit();
-    // }
-    // sleep(1000);
+    var unlock = require("./Modules/MODULE_UNLOCK");
+    //解锁设备
+    if(!unlock.unlock(g_password))
+    {
+        exit();
+    }
+    sleep(1000);
     //获取截图权限
     get_screencapture_permission();
     //注册"音量下键按下退出脚本"事件
@@ -381,5 +387,5 @@ function main()
 
     //退出脚本
     toastLog("退出脚本");
-    exit();
+    exit();con
 }
