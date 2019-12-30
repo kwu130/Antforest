@@ -13,8 +13,7 @@ var g_startTime   = config.get('start_time', "7:00");
 var g_endTime     = config.get('end_time', "7:40");
 var g_password    = config.get('password', "0514");
 var g_is_cycle    = config.get('is_cycle', "false");
-//帮收能量暂时还未实现
-//var g_help_friend = config.get('help_friend', "false");
+var g_help_friend = config.get('help_friend', "false");
 
 //主程序入口
 main();
@@ -145,7 +144,7 @@ function click_by_name(click_name)
                 click(pos.centerX(), pos.centerY());
                 clicked = true;
             } 
-            sleep(500);
+            //sleep(500);
         });
     }
     else if(descEndsWith(click_name).exists() && clicked == false)
@@ -161,11 +160,26 @@ function click_by_name(click_name)
                 click(pos.centerX(), pos.centerY());
                 clicked = true;
             } 
-            sleep(500);
+            //sleep(500);
         });
     }
     return clicked;
 }
+/**
+ * 帮助好友收取能量
+ */
+function help_friends_collection()
+{
+    var x_beg = 200, x_end = 900;
+    var y_beg = 600, y_end = 700;
+    for(var x = x_beg; x < x_end; x += 50)
+        for(var y = y_beg; y < y_end; y += 50)
+        {
+            //遇到帮收失败则返回
+            if(!click(x, y)) return false;
+        }
+}
+
 /**
  * 获取截图
  */
@@ -189,29 +203,35 @@ function get_captureimg()
 function get_has_energy_friends()
 {
     var img = get_captureimg();
-    var p = null;
+    var hand = null, heart = null;
+
     //查找可收取能量的小手
     //"#ffffff"为白色， "#1da06d"为深绿色
-    p = images.findMultiColors(img, "#ffffff", [[0, -35, "#1da06d"], [0, 23, "#1da06d"]], {
+    hand = images.findMultiColors(img, "#ffffff", [[0, -35, "#1da06d"], [0, 23, "#1da06d"]], {
         region: [1073, 400 , 1, 1800]
     });
-    /*
-    //TODO:
-    //if(g_help_friend)
-    //{
-    //      查找爱心图标
-    //}
-    //如果找到则返回
-    */
-    if(p != null)
+
+    if(hand != null)
     {
-        toastLog("找到好友");
-        return p;
+        console.log("找到可收取能量好友");
+        return [hand, "hand"];
     }
-    else
+    if(g_help_friend)
     {
-        return null;
+        //查找可帮收能量的爱心
+        //"##f99236"为橙色， "#fffffb"和"#fffefb"为白色
+        heart = images.findMultiColors(img, "#f99236", [[0, -10, "#fffffb"], [0, 15, "#fffefb"]], {
+            region: [1059, 400 , 1, 1800]
+        });
+
+        if(heart != null)
+        {
+            console.log("找到可帮收能量好友");
+            return [heart, "heart"];
+        }
     }
+
+    return null;
 }
 
 /**
@@ -263,13 +283,16 @@ function entrance_friends()
         }
     }
     //找到好友，进入好友森林
-    if(click(epoint.x, epoint.y))
+    if(click(epoint[0].x, epoint[0].y))
     {
         sleep(2000);
         //确认进入了好友森林
         if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
         {
-            click_by_name("克");
+            if(epoint[1] == "hand")
+                click_by_name("克");
+            else
+                help_friends_collection();
         }
         //返回排行榜
         back();
@@ -312,6 +335,21 @@ function check_time()
     }
 }
 /**
+ * 输出脚本执行配置信息
+ */
+function print_configure_info()
+{
+    console.log("-----------------------------------------"); 
+    if(g_is_cycle)
+    {
+        console.log("循环执行开始时间：" + g_startTime);
+        console.log("循环执行结束时间：" + g_endTime);
+    }
+    let help_friend = g_help_friend ? "是":"否";
+    console.log("是否帮助好友收取：" + help_friend)
+    console.log("-----------------------------------------"); 
+}
+/**
  * 主函数
  */
 function main()
@@ -329,6 +367,8 @@ function main()
     var exit_event = register_exit_event();
     //等待退出事件子线程执行
     exit_event.waitFor();
+    //输出配置信息
+    print_configure_info();
     do
     {
         //打开支付宝
