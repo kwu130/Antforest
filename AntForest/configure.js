@@ -86,7 +86,7 @@ function draw_view() {
 
     // 格式化
     function format(val) {
-        return val.toString();//结合 Function.toString()的方法来执行特定函数:
+        return val.toString();
     }
 
     // 更新选中的执行方法
@@ -110,11 +110,25 @@ function draw_view() {
             update("help_friend", false);
         }
     });
+    //检查用户是否修改循环时间
+    function check_time_modify(myclock)
+    {
+        var date = new Date();
+        var hour = date.getHours();
+        var minu = date.getMinutes();
+
+        var myhour = myclock.getCurrentHour();
+        var myminu = myclock.getCurrentMinute();
+
+        if(myhour != hour || myminu != minu)
+            return true;
+        else
+            return false;
+    }
 
     //保存配置
     ui.save.on("click", () =>{
-        let flag = false;
-        if(config.get('is_cycle'))
+        if(config.get('is_cycle') && (check_time_modify(ui.picker_stime) || check_time_modify(ui.picker_etime)))
         {
             let shour = Number(ui.picker_stime.getCurrentHour());
             let sminu = Number(ui.picker_stime.getCurrentMinute());
@@ -123,24 +137,20 @@ function draw_view() {
             let eminu = Number(ui.picker_etime.getCurrentMinute());
 
             if(shour*60 + sminu >= ehour*60 + eminu)
-                toastLog("结束时间小于开始时间，请重新选择");
+            {
+                toast("结束时间小于开始时间，请重新选择");
+                console.warn("结束时间小于开始时间，请重新选择");
+                return false;
+            }
             else
             {
                 update("start_time", format(shour)+":"+format(sminu));
                 update("end_time", format(ehour)+":"+format(eminu));
-                flag = true;
             }  
         }
         update("password", format(ui.password.getText()));
-        if(config.get('is_cycle'))
-        {
-            if(flag)
-                toastLog("保存成功");
-        }
-        else
-        {
-            toastLog("保存成功");
-        }        
+        toastLog("保存成功"); 
+
     });
     //清除本地储存
     ui.clear.on("click", () => {
