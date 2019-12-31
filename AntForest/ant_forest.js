@@ -8,12 +8,16 @@ setScreenMetrics(1080, 2340);
 
 //读取配置文件，设置相应参数
 var config = require("./Modules/MODULE_CONFIGURE");
-
 var g_startTime   = config.startTime;
 var g_endTime     = config.endTime;
 var g_password    = config.password;
 var g_is_cycle    = config.is_cycle;
 var g_help_friend = config.help_friend;
+//搜索控件时使用的常量
+const PREFIX = "prefix";
+const SUFFIX = "suffix";
+const TEXT   = "text";
+const DESC   = "desc";
 
 //主程序入口
 main();
@@ -85,7 +89,12 @@ function open_alipay()
     }
     else
     {//找到则点击
-        click_by_name("首页");
+        let res = click_by_name("首页", SUFFIX, TEXT, 1000);
+        if(res == false)
+        {
+            console.error("打开支付宝首页失败，退出脚本");
+            exit();
+        }
     }
 }
 /**
@@ -98,21 +107,28 @@ function entrance_antforest()
     sleep(500);
     swipe(520, 200, 520, 1200, 500);
 
-    if(!textEndsWith("蚂蚁森林").exists() && !descEndsWith("蚂蚁森林").exists())
+    let res1 = click_by_name("蚂蚁森林", PREFIX, TEXT, 1000);
+    if(res1 == null)
     {
-        toastLog("首页上没有蚂蚁森林，退出脚本");
+        toast("首页上没有蚂蚁森林，退出脚本");
+        console.error("首页上没有蚂蚁森林，退出脚本");
+        exit();
+    }
+    else if(res1 == false)
+    {
+        toast("进入蚂蚁森林失败，退出脚本");
+        console.error("进入蚂蚁森林失败, 退出脚本");
         exit();
     }
     else
     {
         //进入蚂蚁森林主页
         toastLog("进入蚂蚁森林主页");
-        click_by_name("蚂蚁森林");
         sleep(3000);
     }
     /*开始能量收集*/
     //收集自己的能量
-    click_by_name("克");
+    collection_energy(100);
     toast("自己能量收集完成");
     console.info("自己能量收集完成");
 
@@ -121,59 +137,123 @@ function entrance_antforest()
     sleep(500);
     swipe(520, 1800, 520, 300, 500);
 
-    //进入能量排行榜
+    //进入好友能量排行榜
     console.log("点击查看更多好友");
-    click_by_name("查看更多好友");
-    sleep(1000);
-    //进入好友排行榜页面
-    entrance_friends();
+    let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
+    if(res2 == null)
+    {
+        toast("没有找到查看更多好友，退出脚本");
+        console.error("没有找到查看更多好友，退出脚本");
+        exit();
+    }
+    else if(res2 == false)
+    {
+        toast("进入好友排行榜失败，退出脚本");
+        console.error("进入好友排行榜失败, 退出脚本");
+        exit();
+    }
+    else
+    {
+        //进入好友排行榜
+        console.log("进入好友排行榜");
+        sleep(1000);
+        //进入好友排行榜页面
+        entrance_friends();
+    }
 }
 /**
- * 根据传入参数点击 
- * @param {*} click_name 要点击的文本
+ * 根据名称点击控件
+ * @param {*} click_name 控件名称
+ * @param {*} prefix_or_suffix 前缀还是后缀
+ * @param {*} text_or_desc text还是desc属性
+ * @param {*} timeout 超时时间
  */
-function click_by_name(click_name)
+function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
 {
-    var clicked = false;
-    if(textEndsWith(click_name).exists())
+    if(prefix_or_suffix == "prefix" && text_or_desc == "text")
     {
-        textEndsWith(click_name).find().forEach(function(item){
-            var pos = item.bounds();
+        var result = textStartsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
             if(pos.centerX() < 0 || pos.centerY() < 0)
-            {
                 return false;
-            }
             else
-            {
-                click(pos.centerX(), pos.centerY());
-                clicked = true;
-            } 
-            sleep(500);
-        });
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
     }
-    else if(descEndsWith(click_name).exists() && clicked == false)
+    if(prefix_or_suffix == "prefix" && text_or_desc == "desc")
     {
-        descEndsWith(click_name).find().forEach(function(item){
-            var pos = item.bounds();
+        var result = descStartsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
             if(pos.centerX() < 0 || pos.centerY() < 0)
-            {
                 return false;
-            }
             else
-            {
-                click(pos.centerX(), pos.centerY());
-                clicked = true;
-            } 
-            sleep(500);
-        });
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
     }
-    return clicked;
+    if(prefix_or_suffix == "suffix" && text_or_desc == "text")
+    {
+        var result = textEndsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
+    if(prefix_or_suffix == "suffix" && text_or_desc == "desc")
+    {
+        var result = descEndsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
 }
+
+/**
+ * 收集自己和好友的能量
+ * @param {*} delay 点击能量球的时间间隔
+ */
+function collection_energy(delay)
+{//delay为500ms时，可直观观察到能量收集情况
+    if(typeof(delay) == "undefined") delay = 500;
+    textEndsWith("克").find().forEach(function(item) {
+        let pos = item.bounds();
+        if(pos.centerX() < 0 || pos.centerY() < 0)
+            return false;
+        else
+        {
+            click(pos.centerX(), pos.centerY());
+            sleep(delay);
+        }
+    });
+}
+
 /**
  * 帮助好友收取能量
+ * @param {*} delay 点击能量球的时间间隔
  */
-function help_friends_collection()
+function help_friends_collection(delay)
 {
+    if(typeof(delay) == "undefined") delay = 0;
     var x_beg = 200, x_end = 900;
     var y_beg = 600, y_end = 700;
     for(var x = x_beg; x < x_end; x += 50)
@@ -181,6 +261,7 @@ function help_friends_collection()
         {
             //遇到帮收失败则返回
             if(!click(x, y)) return false;
+            sleep(delay);
         }
 }
 
@@ -221,7 +302,7 @@ function get_has_energy_friends()
         console.info("找到**可收取**好友");
         return [hand, "hand"];
     }
-    if(g_help_friend)
+    if(g_help_friend == true)
     {
         //查找可帮收能量的爱心
         //"##f99236"为橙色， "#fffffb"和"#fffefb"为白色
@@ -295,9 +376,9 @@ function entrance_friends()
         if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
         {
             if(epoint[1] == "hand")
-                click_by_name("克");
+                collection_energy(500);//default 500ms
             else
-                help_friends_collection();
+                help_friends_collection(0);//default 0ms
         }
         //返回排行榜
         back();
