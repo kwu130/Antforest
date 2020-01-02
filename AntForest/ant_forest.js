@@ -18,6 +18,8 @@ const PREFIX = "prefix";
 const SUFFIX = "suffix";
 const TEXT   = "text";
 const DESC   = "desc";
+//统计能量收集情况
+var pre_energy = -1, aft_energy = -1;
 
 //主程序入口
 main();
@@ -97,6 +99,20 @@ function open_alipay()
         }
     }
 }
+
+/**
+ * 记录当前自己的能量总数
+ */
+function mark_myself_energy()
+{
+    let total_energy = textEndsWith("g").boundsInside(700, 200, 1080, 400).findOne(1000);
+    if(total_energy != null)
+    {
+        let energy_str = total_energy.text();
+        return Number(energy_str.substring(0, energy_str.length-1));
+    }
+}
+
 /**
  * 进入蚂蚁森林
  */
@@ -126,6 +142,9 @@ function entrance_antforest()
         toastLog("进入蚂蚁森林主页");
         sleep(3000);
     }
+    //记录收集前的能量数
+    if(pre_energy == -1)
+        pre_energy = mark_myself_energy();
     /*开始能量收集*/
     //收集自己的能量
     collection_energy(100);
@@ -136,6 +155,7 @@ function entrance_antforest()
     swipe(520, 1800, 520, 300, 500);
     sleep(500);
     swipe(520, 1800, 520, 300, 500);
+    sleep(500);
 
     //进入好友能量排行榜
     console.log("点击查看更多好友");
@@ -157,9 +177,19 @@ function entrance_antforest()
         //进入好友排行榜
         console.log("进入好友排行榜");
         sleep(1000);
-        //进入好友排行榜页面
+        //进入好友排行榜页面收集好友能量
         entrance_friends();
+        //能量收集完成回到页面顶端查看当前能量值
+        back();
+        sleep(500);
+        swipe(520, 300, 520, 1800, 500);
+        sleep(500);
+        swipe(520, 300, 520, 1800, 500);
+        sleep(500);
+        swipe(520, 300, 520, 1800, 500);
+        aft_energy = mark_myself_energy();
     }
+    
 }
 /**
  * 根据名称点击控件
@@ -358,7 +388,7 @@ function entrance_friends()
         //如果检测到结尾，同时也没有可收能量的好友，那么结束收取
         if(epoint == null && arrive_bottom())
         {
-            toastLog("所有好友能量收集完成");
+            toastLog("没有更多好友了");
             return true;
         }
         //如果连续32次都未检测到可收集好友,无论如何停止查找
@@ -389,11 +419,9 @@ function entrance_friends()
 /**
  * 运行结束
  */
-function run_done()
+function run_done(cnt)
 {
-    console.log("一次运行结束");
-    back();
-    sleep(1000);
+    console.info("第 " + cnt + " 遍收集结束");
     back();
 }
 /**
@@ -425,15 +453,15 @@ function check_time()
  */
 function print_configure_info()
 {
-    console.log("-----------------------------------------"); 
+    console.log("*********************************");
     if(g_is_cycle)
     {
         console.info("循环执行开始时间：" + g_startTime);
         console.info("循环执行结束时间：" + g_endTime);
     }
     let yes_or_no = g_help_friend ? "是":"否";
-    console.info("是否帮助好友收取：" + yes_or_no)
-    console.log("-----------------------------------------"); 
+    console.info("是否帮助好友收取：" + yes_or_no);
+    console.log("*********************************");
 }
 
 /**
@@ -456,6 +484,7 @@ function main()
     exit_event.waitFor();
     //输出配置信息
     print_configure_info();
+    var cnt = 1;
     do
     {
         //打开支付宝
@@ -463,10 +492,16 @@ function main()
         //进入蚂蚁森林
         entrance_antforest();
         //运行结束
-        run_done();
+        run_done(cnt++);
     }while(g_is_cycle && check_time())
-
+    //输出能量收集总量
+    if(pre_energy != -1 && aft_energy != -1)
+    {
+        console.log("*********************************");
+        console.info("本次运行共收集能量：" + (aft_energy - pre_energy) + "克");
+        console.log("*********************************");
+    }
     //退出脚本
-    toastLog("退出脚本");
-    exit();con
+    toastLog("运行结束，退出脚本");
+    exit();
 }
