@@ -156,8 +156,9 @@ function draw_view() {
     ui.clear.on("click", () => {
         confirm("确定要清除配置？").then(ok => {
                 if (ok) {
-                    storages.remove("ant_forest_config");
+                    set_default_config();
                     toastLog("清除成功");
+                    draw_view();
                 }
             });
     });
