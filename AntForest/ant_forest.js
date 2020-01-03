@@ -13,6 +13,7 @@ var g_endTime     = config.endTime;
 var g_password    = config.password;
 var g_is_cycle    = config.is_cycle;
 var g_help_friend = config.help_friend;
+var g_low_power   = config.low_power;
 //搜索控件时使用的常量
 const PREFIX = "prefix";
 const SUFFIX = "suffix";
@@ -461,6 +462,8 @@ function print_configure_info()
     }
     let yes_or_no = g_help_friend ? "是":"否";
     console.info("是否帮助好友收取：" + yes_or_no);
+    yes_or_no = g_low_power ? "是":"否";
+    console.info("循环期间是否省电：" + yes_or_no);
     console.log("*********************************");
 }
 
@@ -484,14 +487,27 @@ function main()
     exit_event.waitFor();
     //输出配置信息
     print_configure_info();
-    var cnt = 1;
+    //省电运行
+    var mode = -1, light = 255;
+    if(g_is_cycle && g_low_power && check_time())
+    {
+        //记录原始亮度模式和值
+        mode  = device.getBrightnessMode();
+        light = device.getBrightness();
+        if(mode == 1)
+        {
+            device.setBrightnessMode(0);//设置为手动模式
+        }
+        device.setBrightness(10);//设置亮度为10
+    }
+    var cnt = 1;//记录遍历次数
     do
     {
         //打开支付宝
         open_alipay();
         //进入蚂蚁森林
         entrance_antforest();
-        //运行结束
+        //一次收集结束
         run_done(cnt++);
     }while(g_is_cycle && check_time())
     //输出能量收集总量
@@ -500,6 +516,12 @@ function main()
         console.log("*********************************");
         console.info("本次运行共收集能量：" + (aft_energy - pre_energy) + "克");
         console.log("*********************************");
+    }
+    //恢复亮度
+    if(mode != -1)
+    {
+        device.setBrightnessMode(mode);
+        device.setBrightness(light);
     }
     //退出脚本
     toastLog("运行结束，退出脚本");

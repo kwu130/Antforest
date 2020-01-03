@@ -6,5 +6,5 @@ module.exports =
     password    : config.get('password', "0514"),
     is_cycle    : config.get('is_cycle', "false"),
     help_friend : config.get('help_friend', "false"),
+    low_power   : config.get('low_power', "false"),
 }
-

@@ -10,7 +10,8 @@ function set_default_config(){
         help_friend: false,
         is_cycle: false,
         start_time: "7:00",
-        end_time: "7:30"
+        end_time: "7:30",
+        low_power: false,
     };
     // 储存默认配置到本地
     Object.keys(default_conf).forEach(function (key) {
@@ -48,10 +49,17 @@ function draw_view() {
                         <text text="结束时间(默认{{config.get('end_time')}})" textColor="#666666" textSize="12sp" marginTop="16" />
                         <timepicker id="picker_etime" timePickerMode="spinner"/>
                     </vertical>
+                    <vertical visibility="{{config.get('is_cycle') ? 'visible' : 'gone'}}" w="*" gravity="left" layout_gravity="left">
+                        <text text="循环期间省电运行：" textColor="#666666" textSize="14sp" />
+                        <radiogroup id="save_power" orientation="horizontal" margin="0 10">
+                            <radio text="是" checked="{{config.get('low_power')}}" />
+                            <radio text="否" checked="{{!config.get('low_power')}}" marginLeft="20" />
+                        </radiogroup>
+                    </vertical>
                 </vertical>
                 <horizontal w="*" h="1sp" bg="#cccccc" margin="10 0"></horizontal>
                 <vertical w="*" gravity="left" layout_gravity="left" margin="10">
-                    <text text="帮好友收取：" textColor="#666666" textSize="14sp" />
+                    <text text="帮好友收取能量：" textColor="#666666" textSize="14sp" />
                     <radiogroup id="is_help_fris" orientation="horizontal" margin="0 10">
                         <radio text="是" checked="{{config.get('help_friend')}}" />
                         <radio text="否" checked="{{!config.get('help_friend')}}" marginLeft="20" />
@@ -110,6 +118,17 @@ function draw_view() {
             update("help_friend", false);
         }
     });
+    //更新是否省电收集save_power
+    ui.save_power.setOnCheckedChangeListener(function (radioGroup, id) {
+        let index = (id + 1) % radioGroup.getChildCount();
+        //toast(radioGroup.getChildAt(index).getText());
+        if (radioGroup.getChildAt(index).getText() == "是") {
+            update("low_power", true);
+        } else {
+            update("low_power", false);
+        }
+    });
+
     //检查用户是否修改循环时间
     function check_time_modify(myclock)
     {
