@@ -68,12 +68,15 @@ function is_locked()
  */
 function try_password(pasword)
 {
-    for(var i = 0; i < pasword.length; i++)
+    let i;
+    for(i = 0; i < pasword.length; i++)
     {
         click(pas_table[pasword[i]][0], pas_table[pasword[i]][1]);
         sleep(500);
     }
-    sleep(1000);
+    //sleep(1000);
+    i = 0;
+    while(is_locked() && i++ < 5) sleep(500);
     if(!is_locked())
         return true;
     else
