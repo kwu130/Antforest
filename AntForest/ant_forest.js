@@ -152,12 +152,19 @@ function entrance_antforest()
     toast("自己能量收集完成");
     console.info("自己能量收集完成");
 
-    //模拟向上滑动以找到"查看更多好友"
-    swipe(520, 1800, 520, 300, 500);
-    sleep(500);
-    swipe(520, 1800, 520, 300, 500);
-    sleep(500);
-
+    // //模拟向上滑动以找到"查看更多好友"
+    // swipe(520, 1800, 520, 300, 500);
+    // sleep(500);
+    // swipe(520, 1800, 520, 300, 500);
+    // sleep(500);
+    let item = null, i = 0;
+    while(i++ < 10)
+    {
+        item = text("查看更多好友").findOnce();
+        if(item != null && item.bounds().height() > 100) break;
+        swipe(520, 1800, 520, 300, 500);
+        sleep(500);
+    }
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
