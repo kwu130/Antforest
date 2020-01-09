@@ -157,6 +157,7 @@ function entrance_antforest()
     // sleep(500);
     // swipe(520, 1800, 520, 300, 500);
     // sleep(500);
+    //确保"查看更多好友"控件出现在屏幕中
     let item = null, i = 0;
     while(i++ < 10)
     {
@@ -165,6 +166,7 @@ function entrance_antforest()
         swipe(520, 1800, 520, 300, 500);
         sleep(500);
     }
+    //log(item.bounds(), i);
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
@@ -273,16 +275,19 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
 function collection_energy(delay)
 {//delay为500ms时，可直观观察到能量收集情况
     if(typeof(delay) == "undefined") delay = 500;
-    textEndsWith("克").find().forEach(function(item) {
-        let pos = item.bounds();
-        if(pos.centerX() < 0 || pos.centerY() < 0)
-            return false;
-        else
-        {
-            click(pos.centerX(), pos.centerY());
-            sleep(delay);
-        }
-    });
+	if(textEndsWith("克").exists())
+	{
+		textEndsWith("克").find().forEach(function(item) {
+			let pos = item.bounds();
+			if(pos.centerX() < 0 || pos.centerY() < 0)
+				return false;
+			else
+			{
+				click(pos.centerX(), pos.centerY());
+				sleep(delay);
+			}
+		});
+	}
 }
 
 /**
@@ -409,10 +414,16 @@ function entrance_friends()
     //找到好友，进入好友森林
     if(click(epoint[0].x, epoint[0].y))
     {
-        sleep(2000);
         //确认进入了好友森林
-        if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
+		let i = 0;
+        while(i++ < 10)
         {
+            if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists()) break;
+            sleep(500);
+        } 
+        if(i < 10)
+        {
+            //log(i);
             if(epoint[1] == "hand")
                 collection_energy(500);//default 500ms
             else
