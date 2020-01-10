@@ -59,24 +59,17 @@ function register_exit_event()
  */
 function find_homepage()
 {
-    var i = 0;
+    let i = 0;
     //尝试5次找到支付宝首页
-    while(!textEndsWith("首页").exists() && !textEndsWith("我的").exists() && i < 5)
+    while(!textEndsWith("首页").exists() && !textEndsWith("我的").exists() && i++ < 5)
     {
         back();
         sleep(1000);
-        i++;
     }
-    if(i >= 5)
-    {
-        toast("寻找支付宝首页失败，脚本退出");
-        console.error("寻找支付宝首页失败，脚本退出");
-        sleep(2000);
+    if(i < 5)
+        return true;
+    else
         return false;
-    }
-    else   
-        console.log("第" + i + "次寻找支付宝首页成功");
-    return true;
 }
 /**
  * 打开支付宝
@@ -88,14 +81,17 @@ function open_alipay()
     //寻找支付宝首页
     if(!find_homepage())
     {//未找到，退出脚本
+        toast("寻找支付宝首页失败，脚本退出");
+        console.error("寻找支付宝首页失败，脚本退出");
         exit();
     }
     else
     {//找到则点击
+        console.log("成功找到支付宝首页");
         let res = click_by_name("首页", SUFFIX, TEXT, 1000);
         if(res == false)
         {
-            console.error("打开支付宝首页失败，退出脚本");
+            console.error("打开支付宝首页失败，脚本退出");
             exit();
         }
     }
@@ -131,17 +127,23 @@ function entrance_antforest()
         console.error("首页上没有蚂蚁森林，退出脚本");
         exit();
     }
-    else if(res1 == false)
+    //确保进入蚂蚁森林主页
+    let i = 0;
+    while(i++ < 10)
     {
-        toast("进入蚂蚁森林失败，退出脚本");
-        console.error("进入蚂蚁森林失败, 退出脚本");
+        if(textEndsWith("背包").exists() && textEndsWith("任务").exists()) break;
+        sleep(500);
+    }
+    if(i >= 10) 
+    {
+        toast("进入蚂蚁森林主页失败，退出脚本");
+        console.error("进入蚂蚁森林主页失败，退出脚本");
         exit();
     }
     else
     {
-        //进入蚂蚁森林主页
-        toastLog("进入蚂蚁森林主页");
-        sleep(3000);
+        console.log("成功进入蚂蚁森林主页");
+        //log(i);
     }
     //记录收集前的能量数
     if(pre_energy == -1)
@@ -152,13 +154,9 @@ function entrance_antforest()
     toast("自己能量收集完成");
     console.info("自己能量收集完成");
 
-    // //模拟向上滑动以找到"查看更多好友"
-    // swipe(520, 1800, 520, 300, 500);
-    // sleep(500);
-    // swipe(520, 1800, 520, 300, 500);
-    // sleep(500);
     //确保"查看更多好友"控件出现在屏幕中
-    let item = null, i = 0;
+    let item = null;
+    i = 0;
     while(i++ < 10)
     {
         item = text("查看更多好友").findOnce();
