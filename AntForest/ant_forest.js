@@ -61,10 +61,11 @@ function find_homepage()
 {
     let i = 0;
     //尝试5次找到支付宝首页
-    while(!textEndsWith("首页").exists() && !textEndsWith("我的").exists() && i++ < 5)
+    while(i++ < 5)
     {
+        if(text("首页").exists() && text("我的").exists()) break;
         back();
-        sleep(1000);
+        sleep(500);
     }
     if(i < 5)
         return true;
@@ -87,13 +88,17 @@ function open_alipay()
     }
     else
     {//找到则点击
-        console.log("成功找到支付宝首页");
-        let res = click_by_name("首页", SUFFIX, TEXT, 1000);
-        if(res == false)
+        let item = text("首页").findOnce();
+        if(!item.selected())
         {
-            console.error("打开支付宝首页失败，脚本退出");
-            exit();
+            let res = click_by_name("首页", SUFFIX, TEXT, 1000);
+            if(res == false)
+            {
+                console.error("打开支付宝首页失败，脚本退出");
+                exit();
+            }
         }
+        console.log("成功找到支付宝首页");
     }
 }
 
@@ -115,11 +120,16 @@ function mark_myself_energy()
  */
 function entrance_antforest()
 {
-    //模拟刷新页面
-    swipe(520, 200, 520, 1200, 500);
-    sleep(500);
-    swipe(520, 200, 520, 1200, 500);
-
+    //滑动页面找到蚂蚁森林
+    let item = null, i = 0;
+    while(i++ < 5)
+    {
+        item = text("蚂蚁森林").findOnce();
+        if(item != null && item.bounds().height() > 40) break;
+        swipe(520, 500, 520, 1500, 500);
+        sleep(500);
+    }
+    //log(i);
     let res1 = click_by_name("蚂蚁森林", PREFIX, TEXT, 1000);
     if(res1 == null)
     {
@@ -128,11 +138,11 @@ function entrance_antforest()
         exit();
     }
     //确保进入蚂蚁森林主页
-    let i = 0;
+    i = 0;
     while(i++ < 10)
     {
-        if(textEndsWith("背包").exists() && textEndsWith("任务").exists()) break;
-        sleep(500);
+        if(text("背包").exists() && text("任务").exists()) break;
+        sleep(1000);    //进入蚂蚁森林主页的时间较长，因此循环检测的时间间隔设置为1000ms(default 500ms)
     }
     if(i >= 10) 
     {
@@ -155,7 +165,7 @@ function entrance_antforest()
     console.info("自己能量收集完成");
 
     //确保"查看更多好友"控件出现在屏幕中
-    let item = null;
+    item = null;
     i = 0;
     while(i++ < 10)
     {
@@ -164,7 +174,7 @@ function entrance_antforest()
         swipe(520, 1800, 520, 300, 500);
         sleep(500);
     }
-    //log(item.bounds(), i);
+    //log(i);
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
@@ -184,7 +194,12 @@ function entrance_antforest()
     {
         //进入好友排行榜
         console.log("进入好友排行榜");
-        sleep(1000);
+        //预留足够的反应时间(default 2000ms)等待进入排行榜页面
+        //否则会出现排行榜前几个好友检测不到的bug
+        //不能通过while(!text("总排行榜").exists())来检测
+        //因为前一个页面也有text为"总排行榜"的控件
+        sleep(2000);
+        
         //进入好友排行榜页面收集好友能量
         entrance_friends();
         //能量收集完成回到页面顶端查看当前能量值
@@ -416,7 +431,7 @@ function entrance_friends()
 		let i = 0;
         while(i++ < 10)
         {
-            if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists()) break;
+            if(text("浇水").exists() && text("弹幕").exists()) break;
             sleep(500);
         } 
         if(i < 10)
