@@ -21,6 +21,8 @@ const TEXT   = "text";
 const DESC   = "desc";
 //统计能量收集情况
 var pre_energy = -1, aft_energy = -1;
+//记录屏幕亮度调节模式和亮度
+var mode = -1, light = 255;
 
 //主程序入口
 main();
@@ -129,7 +131,7 @@ function entrance_antforest()
         swipe(520, 500, 520, 1500, 500);
         sleep(500);
     }
-    //log(i);
+    log(i);
     let res1 = click_by_name("蚂蚁森林", PREFIX, TEXT, 1000);
     if(res1 == null)
     {
@@ -148,12 +150,13 @@ function entrance_antforest()
     {
         toast("进入蚂蚁森林主页失败，退出脚本");
         console.error("进入蚂蚁森林主页失败，退出脚本");
-        exit();
+        //exit();
+        try_again(1000);
     }
     else
     {
         console.log("成功进入蚂蚁森林主页");
-        //log(i);
+        log(i);
     }
     //记录收集前的能量数
     if(pre_energy == -1)
@@ -174,7 +177,7 @@ function entrance_antforest()
         swipe(520, 1800, 520, 300, 500);
         sleep(500);
     }
-    //log(i);
+    log(i);
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
@@ -182,13 +185,15 @@ function entrance_antforest()
     {
         toast("没有找到查看更多好友，退出脚本");
         console.error("没有找到查看更多好友，退出脚本");
-        exit();
+        //exit();
+        try_again(1000);
     }
     else if(res2 == false)
     {
         toast("进入好友排行榜失败，退出脚本");
         console.error("进入好友排行榜失败, 退出脚本");
-        exit();
+        //exit();
+        try_again(1000);
     }
     else
     {
@@ -436,7 +441,7 @@ function entrance_friends()
         } 
         if(i < 10)
         {
-            //log(i);
+            log(i);
             if(epoint[1] == "hand")
                 collection_energy(500);//default 500ms
             else
@@ -455,6 +460,31 @@ function run_done(cnt)
 {
     console.info("第 " + cnt + " 遍收集结束");
     back();
+}
+/**
+ * 异常退出当前脚本前再启动一个脚本进行重试
+ * @param {*} delay 退出前的时延
+ */
+function try_again(delay)
+{
+    console.error("脚本异常退出，即将重试");
+
+    if(typeof(delay) == "undefined") delay = 1000; //default 1000ms
+    let path = engines.myEngine().cwd();
+    let name = "ant_forest.js";
+
+    engines.execScriptFile(path + "/" + name);
+
+    sleep(delay);
+
+    //恢复亮度
+    if(mode != -1)
+    {
+        device.setBrightnessMode(mode);
+        device.setBrightness(light);
+    }
+
+    exit();
 }
 /**
  * 检查是否仍在给定时间范围内
@@ -507,7 +537,8 @@ function main()
     //解锁设备
     if(!unlock.unlock(g_password))
     {
-        exit();
+        //exit();
+        try_again(2000);
     }
     sleep(1000);
     //获取截图权限
@@ -518,8 +549,7 @@ function main()
     exit_event.waitFor();
     //输出配置信息
     print_configure_info();
-    //省电运行
-    var mode = -1, light = 255;
+    //检查是否开启省电运行
     if(g_is_cycle && g_low_power && check_time())
     {
         //记录原始亮度模式和值
