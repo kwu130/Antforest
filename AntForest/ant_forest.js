@@ -163,10 +163,17 @@ function entrance_antforest()
         pre_energy = mark_myself_energy();
     /*开始能量收集*/
     //收集自己的能量
-    collection_energy(100);
-    toast("自己能量收集完成");
-    console.info("自己能量收集完成");
-
+    if(textEndsWith("克").exists())
+    {
+        collection_energy(100);
+        toast("自己能量收集完成");
+        console.info("自己能量收集完成");
+    }
+    else
+    {
+        toast("自己没有可收集的能量");
+        console.info("自己没有可收集的能量");
+    }
     //确保"查看更多好友"控件出现在屏幕中
     item = null;
     i = 0;
@@ -535,11 +542,7 @@ function main()
 {
     var unlock = require("./Modules/MODULE_UNLOCK");
     //解锁设备
-    if(!unlock.unlock(g_password))
-    {
-        //exit();
-        try_again(2000);
-    }
+    if(!unlock.unlock(g_password)) exit();
     sleep(1000);
     //获取截图权限
     get_screencapture_permission();
