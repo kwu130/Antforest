@@ -17,12 +17,15 @@ var g_low_power   = config.low_power;
 //搜索控件时使用的常量
 const PREFIX = "prefix";
 const SUFFIX = "suffix";
+const COMPLE = "comple";
 const TEXT   = "text";
 const DESC   = "desc";
 //统计能量收集情况
 var pre_energy = -1, aft_energy = -1;
 //记录屏幕亮度调节模式和亮度
 var mode = -1, light = 255;
+//debug标志
+const DEBUG = true;
 
 //主程序入口
 main();
@@ -131,8 +134,7 @@ function entrance_antforest()
         swipe(520, 500, 520, 1500, 500);
         sleep(500);
     }
-    log(i);
-    let res1 = click_by_name("蚂蚁森林", PREFIX, TEXT, 1000);
+    let res1 = click_by_name("蚂蚁森林", COMPLE, TEXT, 1000);
     if(res1 == null)
     {
         toast("首页上没有蚂蚁森林，退出脚本");
@@ -155,8 +157,10 @@ function entrance_antforest()
     }
     else
     {
-        console.log("成功进入蚂蚁森林主页");
-        log(i);
+        if(DEBUG)
+            console.log("成功进入蚂蚁森林主页", "用时" + i*1.0 + "秒");
+        else
+            console.log("成功进入蚂蚁森林主页");
     }
     //记录收集前的能量数
     if(pre_energy == -1)
@@ -184,7 +188,6 @@ function entrance_antforest()
         swipe(520, 1800, 520, 300, 500);
         sleep(500);
     }
-    log(i);
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
@@ -205,7 +208,10 @@ function entrance_antforest()
     else
     {
         //进入好友排行榜
-        console.log("进入好友排行榜");
+        if(DEBUG)
+            console.log("成功进入好友排行榜", "用时" + i*0.5 + "秒");
+        else
+            console.log("成功进入好友排行榜");
         //预留足够的反应时间(default 2000ms)等待进入排行榜页面
         //否则会出现排行榜前几个好友检测不到的bug
         //不能通过while(!text("总排行榜").exists())来检测
@@ -229,13 +235,13 @@ function entrance_antforest()
 /**
  * 根据名称点击控件
  * @param {*} click_name 控件名称
- * @param {*} prefix_or_suffix 前缀还是后缀
+ * @param {*} match_pos 前缀、后缀还是完全匹配
  * @param {*} text_or_desc text还是desc属性
  * @param {*} timeout 超时时间
  */
-function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
+function click_by_name(click_name, match_pos, text_or_desc, timeout)
 {
-    if(prefix_or_suffix == "prefix" && text_or_desc == "text")
+    if(match_pos == "prefix" && text_or_desc == "text")
     {
         var result = textStartsWith(click_name).findOne(timeout);
         if(result != null)
@@ -249,7 +255,7 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "prefix" && text_or_desc == "desc")
+    if(match_pos == "prefix" && text_or_desc == "desc")
     {
         var result = descStartsWith(click_name).findOne(timeout);
         if(result != null)
@@ -263,7 +269,7 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "suffix" && text_or_desc == "text")
+    if(match_pos == "suffix" && text_or_desc == "text")
     {
         var result = textEndsWith(click_name).findOne(timeout);
         if(result != null)
@@ -277,9 +283,37 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "suffix" && text_or_desc == "desc")
+    if(match_pos == "suffix" && text_or_desc == "desc")
     {
         var result = descEndsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
+    if(match_pos == "comple" && text_or_desc == "text")
+    {
+        var result = text(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
+    if(match_pos == "comple" && text_or_desc == "desc")
+    {
+        var result = desc(click_name).findOne(timeout);
         if(result != null)
         {
             let pos = result.bounds();
@@ -448,7 +482,7 @@ function entrance_friends()
         } 
         if(i < 10)
         {
-            log(i);
+            if(DEBUG) console.log("成功进入好友森林主页", "用时" + i*0.5 + "秒");
             if(epoint[1] == "hand")
                 collection_energy(500);//default 500ms
             else
