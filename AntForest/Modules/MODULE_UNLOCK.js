@@ -31,7 +31,7 @@ module.exports =
                 if(is_locked())
                 {
                     //滑出解锁界面
-                    if(device.brand === 'Xiaomi')
+                    if(device.brand === 'Xiaomi' || device.brand === 'Redmi')
                     {//由于MIUI的解锁有变速检测，因此要点开时间以进入密码界面
                         //滑出状态栏
                         swipe(WIDTH / 2, 0, WIDTH / 2, HEIGHT, 500);
