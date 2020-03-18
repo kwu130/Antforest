@@ -11,44 +11,60 @@ module.exports =
 {
     unlock : function(password)
         {
-            var success = true;
-            if(!device.isScreenOn())
+            let i;
+            //尝试唤醒屏幕
+            i = 0;
+            while(!device.isScreenOn() && i++ < 10)
             {
                 //唤醒屏幕
                 device.wakeUp();
                 sleep(500);          
             }
-            console.info("该设备为：" + device.brand + " " + device.model);
-            //如未解锁，则输入密码解锁
-            if(is_locked())
+            if(i >= 10)
             {
-                //由于MIUI的解锁有变速检测，因此要点开时间以进入密码界面
-                if(device.brand === 'Xiaomi')
+                console.error("唤醒屏幕失败，退出脚本");
+                return false;
+            }    
+            else
+            {
+                console.info("该设备为：" + device.brand + " " + device.model);
+                if(is_locked())
                 {
-                    //滑出状态栏
-                    swipe(WIDTH / 2, 0, WIDTH / 2, HEIGHT, 500);
-                    //点击时间位置
-                    click(200, 200);
+                    //滑出解锁界面
+                    if(device.brand === 'Xiaomi' || device.brand === 'Redmi')
+                    {//由于MIUI的解锁有变速检测，因此要点开时间以进入密码界面
+                        //滑出状态栏
+                        swipe(WIDTH / 2, 0, WIDTH / 2, HEIGHT, 500);
+                        //点击时间位置
+                        click(200, 200);
+                    }
+                    else
+                    {
+                        swipe(WIDTH / 2, HEIGHT / 2, WIDTH / 2, 0, 500);
+                    }
+                    sleep(1000);
+                    //尝试解锁
+                    i = 0;
+                    while(is_locked() && i++ < 5)
+                    {
+                        try_password(password);
+                        sleep(1000);
+                    }
+                    if(i >= 5)
+                    {
+                        console.log("解锁失败，退出脚本");
+                        return false;
+                    }
+                    else
+                    {
+                        toastLog("解锁成功");
+                        //返回主界面
+                        home();
+                        return true;
+                    }
                 }
-                else
-                {
-                    swipe(WIDTH / 2, HEIGHT, WIDTH / 2, 0, 500);
-                }
-                sleep(500);
-                if(try_password(password))
-                {
-                    toastLog("解锁成功");
-                    //返回主界面
-                    home();
-                    success = true;
-                }
-                else
-                {
-                    toastLog("解锁失败，退出脚本");
-                    success = false;
-                }       
+                return true;      
             }
-            return success;
         }
 };
 
@@ -68,17 +84,9 @@ function is_locked()
  */
 function try_password(pasword)
 {
-    let i;
-    for(i = 0; i < pasword.length; i++)
+    for(let i = 0; i < pasword.length; i++)
     {
         click(pas_table[pasword[i]][0], pas_table[pasword[i]][1]);
         sleep(500);
     }
-    //sleep(1000);
-    i = 0;
-    while(is_locked() && i++ < 5) sleep(500);
-    if(!is_locked())
-        return true;
-    else
-        return false;
 }

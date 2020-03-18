@@ -17,10 +17,15 @@ var g_low_power   = config.low_power;
 //搜索控件时使用的常量
 const PREFIX = "prefix";
 const SUFFIX = "suffix";
+const COMPLE = "comple";
 const TEXT   = "text";
 const DESC   = "desc";
 //统计能量收集情况
 var pre_energy = -1, aft_energy = -1;
+//记录屏幕亮度调节模式和亮度
+var mode = -1, light = 255;
+//debug标志
+const DEBUG = true;
 
 //主程序入口
 main();
@@ -59,24 +64,18 @@ function register_exit_event()
  */
 function find_homepage()
 {
-    var i = 0;
+    let i = 0;
     //尝试5次找到支付宝首页
-    while(!textEndsWith("首页").exists() && !textEndsWith("我的").exists() && i < 5)
+    while(i++ < 5)
     {
+        if(text("首页").exists() && text("我的").exists()) break;
         back();
-        sleep(1000);
-        i++;
+        sleep(500);
     }
-    if(i >= 5)
-    {
-        toast("寻找支付宝首页失败，脚本退出");
-        console.error("寻找支付宝首页失败，脚本退出");
-        sleep(2000);
+    if(i < 5)
+        return true;
+    else
         return false;
-    }
-    else   
-        console.log("第" + i + "次寻找支付宝首页成功");
-    return true;
 }
 /**
  * 打开支付宝
@@ -88,16 +87,23 @@ function open_alipay()
     //寻找支付宝首页
     if(!find_homepage())
     {//未找到，退出脚本
+        toast("寻找支付宝首页失败，脚本退出");
+        console.error("寻找支付宝首页失败，脚本退出");
         exit();
     }
     else
     {//找到则点击
-        let res = click_by_name("首页", SUFFIX, TEXT, 1000);
-        if(res == false)
+        let item = text("首页").findOnce();
+        if(!item.selected())
         {
-            console.error("打开支付宝首页失败，退出脚本");
-            exit();
+            let res = click_by_name("首页", SUFFIX, TEXT, 1000);
+            if(res == false)
+            {
+                console.error("打开支付宝首页失败，脚本退出");
+                exit();
+            }
         }
+        console.log("成功找到支付宝首页");
     }
 }
 
@@ -119,45 +125,69 @@ function mark_myself_energy()
  */
 function entrance_antforest()
 {
-    //模拟刷新页面
-    swipe(520, 200, 520, 1200, 500);
-    sleep(500);
-    swipe(520, 200, 520, 1200, 500);
-
-    let res1 = click_by_name("蚂蚁森林", PREFIX, TEXT, 1000);
+    //滑动页面找到蚂蚁森林
+    let item = null, i = 0;
+    while(i++ < 5)
+    {
+        item = text("蚂蚁森林").findOnce();
+        if(item != null && item.bounds().height() > 40) break;
+        swipe(520, 500, 520, 1500, 500);
+        sleep(500);
+    }
+    let res1 = click_by_name("蚂蚁森林", COMPLE, TEXT, 1000);
     if(res1 == null)
     {
         toast("首页上没有蚂蚁森林，退出脚本");
         console.error("首页上没有蚂蚁森林，退出脚本");
         exit();
     }
-    else if(res1 == false)
+    //确保进入蚂蚁森林主页
+    i = 0;
+    while(i++ < 10)
     {
-        toast("进入蚂蚁森林失败，退出脚本");
-        console.error("进入蚂蚁森林失败, 退出脚本");
-        exit();
+        if(text("背包").exists() && text("任务").exists()) break;
+        sleep(1000);    //进入蚂蚁森林主页的时间较长，因此循环检测的时间间隔设置为1000ms(default 500ms)
+    }
+    if(i >= 10) 
+    {
+        toast("进入蚂蚁森林主页失败，退出脚本");
+        console.error("进入蚂蚁森林主页失败，退出脚本");
+        //exit();
+        try_again(1000);
     }
     else
     {
-        //进入蚂蚁森林主页
-        toastLog("进入蚂蚁森林主页");
-        sleep(3000);
+        if(DEBUG)
+            console.log("成功进入蚂蚁森林主页", "用时" + i*1.0 + "秒");
+        else
+            console.log("成功进入蚂蚁森林主页");
     }
     //记录收集前的能量数
     if(pre_energy == -1)
         pre_energy = mark_myself_energy();
     /*开始能量收集*/
     //收集自己的能量
-    collection_energy(100);
-    toast("自己能量收集完成");
-    console.info("自己能量收集完成");
-
-    //模拟向上滑动以找到"查看更多好友"
-    swipe(520, 1800, 520, 300, 500);
-    sleep(500);
-    swipe(520, 1800, 520, 300, 500);
-    sleep(500);
-
+    if(textEndsWith("克").exists())
+    {
+        collection_energy(100);
+        toast("自己能量收集完成");
+        console.info("自己能量收集完成");
+    }
+    else
+    {
+        toast("自己没有可收集的能量");
+        console.info("自己没有可收集的能量");
+    }
+    //确保"查看更多好友"控件出现在屏幕中
+    item = null;
+    i = 0;
+    while(i++ < 10)
+    {
+        item = text("查看更多好友").findOnce();
+        if(item != null && item.bounds().height() > 100) break;
+        swipe(520, 1800, 520, 300, 500);
+        sleep(500);
+    }
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
@@ -165,19 +195,29 @@ function entrance_antforest()
     {
         toast("没有找到查看更多好友，退出脚本");
         console.error("没有找到查看更多好友，退出脚本");
-        exit();
+        //exit();
+        try_again(1000);
     }
     else if(res2 == false)
     {
         toast("进入好友排行榜失败，退出脚本");
         console.error("进入好友排行榜失败, 退出脚本");
-        exit();
+        //exit();
+        try_again(1000);
     }
     else
     {
         //进入好友排行榜
-        console.log("进入好友排行榜");
-        sleep(1000);
+        if(DEBUG)
+            console.log("成功进入好友排行榜", "用时" + i*0.5 + "秒");
+        else
+            console.log("成功进入好友排行榜");
+        //预留足够的反应时间(default 2000ms)等待进入排行榜页面
+        //否则会出现排行榜前几个好友检测不到的bug
+        //不能通过while(!text("总排行榜").exists())来检测
+        //因为前一个页面也有text为"总排行榜"的控件
+        sleep(2000);
+        
         //进入好友排行榜页面收集好友能量
         entrance_friends();
         //能量收集完成回到页面顶端查看当前能量值
@@ -195,13 +235,13 @@ function entrance_antforest()
 /**
  * 根据名称点击控件
  * @param {*} click_name 控件名称
- * @param {*} prefix_or_suffix 前缀还是后缀
+ * @param {*} match_pos 前缀、后缀还是完全匹配
  * @param {*} text_or_desc text还是desc属性
  * @param {*} timeout 超时时间
  */
-function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
+function click_by_name(click_name, match_pos, text_or_desc, timeout)
 {
-    if(prefix_or_suffix == "prefix" && text_or_desc == "text")
+    if(match_pos == "prefix" && text_or_desc == "text")
     {
         var result = textStartsWith(click_name).findOne(timeout);
         if(result != null)
@@ -215,7 +255,7 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "prefix" && text_or_desc == "desc")
+    if(match_pos == "prefix" && text_or_desc == "desc")
     {
         var result = descStartsWith(click_name).findOne(timeout);
         if(result != null)
@@ -229,7 +269,7 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "suffix" && text_or_desc == "text")
+    if(match_pos == "suffix" && text_or_desc == "text")
     {
         var result = textEndsWith(click_name).findOne(timeout);
         if(result != null)
@@ -243,9 +283,37 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
         else
             return null;
     }
-    if(prefix_or_suffix == "suffix" && text_or_desc == "desc")
+    if(match_pos == "suffix" && text_or_desc == "desc")
     {
         var result = descEndsWith(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
+    if(match_pos == "comple" && text_or_desc == "text")
+    {
+        var result = text(click_name).findOne(timeout);
+        if(result != null)
+        {
+            let pos = result.bounds();
+            if(pos.centerX() < 0 || pos.centerY() < 0)
+                return false;
+            else
+                return click(pos.centerX(), pos.centerY());
+        }
+        else
+            return null;
+    }
+    if(match_pos == "comple" && text_or_desc == "desc")
+    {
+        var result = desc(click_name).findOne(timeout);
         if(result != null)
         {
             let pos = result.bounds();
@@ -266,16 +334,19 @@ function click_by_name(click_name, prefix_or_suffix, text_or_desc, timeout)
 function collection_energy(delay)
 {//delay为500ms时，可直观观察到能量收集情况
     if(typeof(delay) == "undefined") delay = 500;
-    textEndsWith("克").find().forEach(function(item) {
-        let pos = item.bounds();
-        if(pos.centerX() < 0 || pos.centerY() < 0)
-            return false;
-        else
-        {
-            click(pos.centerX(), pos.centerY());
-            sleep(delay);
-        }
-    });
+	if(textEndsWith("克").exists())
+	{
+		textEndsWith("克").find().forEach(function(item) {
+			let pos = item.bounds();
+			if(pos.centerX() < 0 || pos.centerY() < 0)
+				return false;
+			else
+			{
+				click(pos.centerX(), pos.centerY());
+				sleep(delay);
+			}
+		});
+	}
 }
 
 /**
@@ -402,10 +473,16 @@ function entrance_friends()
     //找到好友，进入好友森林
     if(click(epoint[0].x, epoint[0].y))
     {
-        sleep(2000);
         //确认进入了好友森林
-        if(textEndsWith("浇水").exists() && textEndsWith("弹幕").exists())
+		let i = 0;
+        while(i++ < 10)
         {
+            if(text("浇水").exists() && text("弹幕").exists()) break;
+            sleep(500);
+        } 
+        if(i < 10)
+        {
+            if(DEBUG) console.log("成功进入好友森林主页", "用时" + i*0.5 + "秒");
             if(epoint[1] == "hand")
                 collection_energy(500);//default 500ms
             else
@@ -424,6 +501,31 @@ function run_done(cnt)
 {
     console.info("第 " + cnt + " 遍收集结束");
     back();
+}
+/**
+ * 异常退出当前脚本前再启动一个脚本进行重试
+ * @param {*} delay 退出前的时延
+ */
+function try_again(delay)
+{
+    console.error("脚本异常退出，即将重试");
+
+    if(typeof(delay) == "undefined") delay = 1000; //default 1000ms
+    let path = engines.myEngine().cwd();
+    let name = "ant_forest.js";
+
+    engines.execScriptFile(path + "/" + name);
+
+    sleep(delay);
+
+    //恢复亮度
+    if(mode != -1)
+    {
+        device.setBrightnessMode(mode);
+        device.setBrightness(light);
+    }
+
+    exit();
 }
 /**
  * 检查是否仍在给定时间范围内
@@ -474,10 +576,7 @@ function main()
 {
     var unlock = require("./Modules/MODULE_UNLOCK");
     //解锁设备
-    if(!unlock.unlock(g_password))
-    {
-        exit();
-    }
+    if(!unlock.unlock(g_password)) exit();
     sleep(1000);
     //获取截图权限
     get_screencapture_permission();
@@ -487,8 +586,7 @@ function main()
     exit_event.waitFor();
     //输出配置信息
     print_configure_info();
-    //省电运行
-    var mode = -1, light = 255;
+    //检查是否开启省电运行
     if(g_is_cycle && g_low_power && check_time())
     {
         //记录原始亮度模式和值
