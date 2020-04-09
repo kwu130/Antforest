@@ -151,9 +151,8 @@ function entrance_antforest()
     if(i >= 10) 
     {
         toast("进入蚂蚁森林主页失败，退出脚本");
-        console.error("进入蚂蚁森林主页失败，退出脚本");
         //exit();
-        try_again(1000);
+        try_again("进入蚂蚁森林主页失败", 1000);
     }
     else
     {
@@ -194,16 +193,14 @@ function entrance_antforest()
     if(res2 == null)
     {
         toast("没有找到查看更多好友，退出脚本");
-        console.error("没有找到查看更多好友，退出脚本");
         //exit();
-        try_again(1000);
+        try_again("没有找到查看更多好友", 1000);
     }
     else if(res2 == false)
     {
         toast("进入好友排行榜失败，退出脚本");
-        console.error("进入好友排行榜失败, 退出脚本");
         //exit();
-        try_again(1000);
+        try_again("进入好友排行榜失败", 1000);
     }
     else
     {
@@ -357,8 +354,8 @@ function help_friends_collection(delay)
 {
     if(typeof(delay) == "undefined") delay = 0;
     var x_beg = 200, x_end = 900;
-    var y_beg = 600, y_end = 700;
-    for(var x = x_beg; x < x_end; x += 50)
+    var y_beg = 600, y_end = 800;
+    for(var x = x_beg; x < x_end; x += 100)
         for(var y = y_beg; y < y_end; y += 50)
         {
             //遇到帮收失败则返回
@@ -506,10 +503,24 @@ function run_done(cnt)
  * 异常退出当前脚本前再启动一个脚本进行重试
  * @param {*} delay 退出前的时延
  */
-function try_again(delay)
+function try_again(errmsg, delay)
 {
-    console.error("脚本异常退出，即将重试");
-
+    var now = new Date();
+    var hour = now.getHours();
+    var minu = now.getMinutes();
+    var time_a = g_startTime.split(":");
+    var time_b = g_endTime.split(":");
+    var timea = 60 * Number(time_a[0]) + Number(time_a[1]);
+    var timeb = 60 * Number(time_b[0]) + Number(time_b[1]);
+    var time  = 60 * hour + minu;
+    if(time >= timea && time <= timeb)
+        console.error(errmsg + ", 当前时间仍在监控范围内, 即将重试");
+    else
+    {
+        console.error(errmsg + ", 当前时间不在监控范围内, 退出脚本");
+        exit();
+    }
+        
     if(typeof(delay) == "undefined") delay = 1000; //default 1000ms
     let path = engines.myEngine().cwd();
     let name = "ant_forest.js";
@@ -576,7 +587,12 @@ function main()
 {
     var unlock = require("./Modules/MODULE_UNLOCK");
     //解锁设备
-    if(!unlock.unlock(g_password)) exit();
+    if(!unlock.unlock(g_password))
+    {
+        sleep(60 * 1000) // 等待60s后再次尝试
+        if (check_time()) 
+            try_again("解锁失败", 1000); // 若仍在运行时间内 进行重试
+    }
     sleep(1000);
     //获取截图权限
     get_screencapture_permission();
