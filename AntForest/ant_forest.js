@@ -129,18 +129,25 @@ function entrance_antforest()
     let item = null, i = 0;
     while(i++ < 5)
     {
-        item = text("蚂蚁森林").findOnce();
-        if(item != null && item.bounds().height() > 40) break;
+        // 使用className和text双重定位
+        item = className("android.widget.TextView").text("蚂蚁森林").findOnce(); 
+        if(item != null) break;
         swipe(520, 500, 520, 1500, 500);
         sleep(500);
     }
-    let res1 = click_by_name("蚂蚁森林", COMPLE, TEXT, 1000);
-    if(res1 == null)
+
+    if(item == null)
     {
         toast("首页上没有蚂蚁森林，退出脚本");
         console.error("首页上没有蚂蚁森林，退出脚本");
         exit();
     }
+    else
+    {
+        let pos = item.bounds();
+        click(pos.centerX(), pos.centerY());
+    }
+
     //确保进入蚂蚁森林主页
     i = 0;
     while(i++ < 10)
@@ -234,7 +241,7 @@ function entrance_antforest()
  * @param {*} click_name 控件名称
  * @param {*} match_pos 前缀、后缀还是完全匹配
  * @param {*} text_or_desc text还是desc属性
- * @param {*} timeout 超时时间
+ * @param {*} timeout 查找的超时时间
  */
 function click_by_name(click_name, match_pos, text_or_desc, timeout)
 {
