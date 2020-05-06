@@ -96,8 +96,8 @@ function open_alipay()
         let item = text("首页").findOnce();
         if(!item.selected())
         {
-            let res = click_by_name("首页", SUFFIX, TEXT, 1000);
-            if(res == false)
+            let pos = item.bounds();
+            if(!click(pos.centerX(), pos.centerY()))
             {
                 console.error("打开支付宝首页失败，脚本退出");
                 exit();
@@ -126,7 +126,7 @@ function mark_myself_energy()
 function entrance_antforest()
 {
     //滑动页面找到蚂蚁森林
-    let item = null, i = 0;
+    var item = null, i = 0;
     while(i++ < 5)
     {
         // 使用className和text双重定位
@@ -173,17 +173,18 @@ function entrance_antforest()
         pre_energy = mark_myself_energy();
     /*开始能量收集*/
     //收集自己的能量
-    if(textEndsWith("克").exists())
-    {
-        collection_energy(100);
-        toast("自己能量收集完成");
-        console.info("自己能量收集完成");
-    }
-    else
-    {
-        toast("自己没有可收集的能量");
-        console.info("自己没有可收集的能量");
-    }
+    // if(textEndsWith("克").exists())
+    // {
+    //     collection_energy(100);
+    //     toast("自己能量收集完成");
+    //     console.info("自己能量收集完成");
+    // }
+    // else
+    // {
+    //     toast("自己没有可收集的能量");
+    //     console.info("自己没有可收集的能量");
+    // }
+    collection_energy(0);
     //确保"查看更多好友"控件出现在屏幕中
     item = null;
     i = 0;
@@ -197,44 +198,48 @@ function entrance_antforest()
     //进入好友能量排行榜
     console.log("点击查看更多好友");
     let res2 = click_by_name("查看更多好友", PREFIX, TEXT, 1000);
-    if(res2 == null)
+    if(item == null)
     {
         toast("没有找到查看更多好友，退出脚本");
         //exit();
         try_again("没有找到查看更多好友", 1000);
     }
-    else if(res2 == false)
-    {
-        toast("进入好友排行榜失败，退出脚本");
-        //exit();
-        try_again("进入好友排行榜失败", 1000);
-    }
     else
     {
-        //进入好友排行榜
-        if(DEBUG)
-            console.log("成功进入好友排行榜", "用时" + i*0.5 + "秒");
+        let pos = item.bounds();
+        if (!click(pos.centerX(), pos.centerY()))
+        {
+            toast("进入好友排行榜失败，退出脚本");
+            //exit();
+            try_again("进入好友排行榜失败", 1000);
+        }
         else
-            console.log("成功进入好友排行榜");
-        //预留足够的反应时间(default 2000ms)等待进入排行榜页面
-        //否则会出现排行榜前几个好友检测不到的bug
-        //不能通过while(!text("总排行榜").exists())来检测
-        //因为前一个页面也有text为"总排行榜"的控件
-        sleep(2000);
-        
-        //进入好友排行榜页面收集好友能量
-        entrance_friends();
-        //能量收集完成回到页面顶端查看当前能量值
-        back();
-        sleep(500);
-        swipe(520, 300, 520, 1800, 500);
-        sleep(500);
-        swipe(520, 300, 520, 1800, 500);
-        sleep(500);
-        swipe(520, 300, 520, 1800, 500);
-        aft_energy = mark_myself_energy();
+        {
+            //进入好友排行榜
+            if(DEBUG)
+                console.log("成功进入好友排行榜", "用时" + i*0.5 + "秒");
+            else
+                console.log("成功进入好友排行榜");
+            //预留足够的反应时间(default 2000ms)等待进入排行榜页面
+            //否则会出现排行榜前几个好友检测不到的bug
+            //不能通过while(!text("总排行榜").exists())来检测
+            //因为前一个页面也有text为"总排行榜"的控件
+            sleep(2000);
+            
+            //进入好友排行榜页面收集好友能量
+            entrance_friends();
+            //能量收集完成回到页面顶端查看当前能量值
+            back();
+            sleep(500);
+            swipe(520, 300, 520, 1800, 500);
+            sleep(500);
+            swipe(520, 300, 520, 1800, 500);
+            sleep(500);
+            swipe(520, 300, 520, 1800, 500);
+            aft_energy = mark_myself_energy();
+        }
+
     }
-    
 }
 /**
  * 根据名称点击控件
@@ -335,22 +340,37 @@ function click_by_name(click_name, match_pos, text_or_desc, timeout)
  * 收集自己和好友的能量
  * @param {*} delay 点击能量球的时间间隔
  */
+// function collection_energy(delay)
+// {//delay为500ms时，可直观观察到能量收集情况
+//     if(typeof(delay) == "undefined") delay = 500;
+// 	if(textEndsWith("克").exists())
+// 	{
+// 		textEndsWith("克").find().forEach(function(item) {
+// 			let pos = item.bounds();
+// 			if(pos.centerX() < 0 || pos.centerY() < 0)
+// 				return false;
+// 			else
+// 			{
+// 				click(pos.centerX(), pos.centerY());
+// 				sleep(delay);
+// 			}
+// 		});
+// 	}
+// }
+// 暴力收取
 function collection_energy(delay)
 {//delay为500ms时，可直观观察到能量收集情况
-    if(typeof(delay) == "undefined") delay = 500;
-	if(textEndsWith("克").exists())
-	{
-		textEndsWith("克").find().forEach(function(item) {
-			let pos = item.bounds();
-			if(pos.centerX() < 0 || pos.centerY() < 0)
-				return false;
-			else
-			{
-				click(pos.centerX(), pos.centerY());
-				sleep(delay);
-			}
-		});
-	}
+    if(typeof(delay) == "undefined") delay = 0;
+    var x_beg = 200, x_end = 900;
+    var y_beg = 600, y_end = 800;
+    for(var x = x_beg; x < x_end; x += 100)
+        for(var y = y_beg; y < y_end; y += 50)
+        {
+            //遇到帮收失败则返回
+            click(x, y);
+            sleep(delay);
+        }
+	
 }
 
 /**
@@ -481,14 +501,14 @@ function entrance_friends()
 		let i = 0;
         while(i++ < 10)
         {
-            if(text("浇水").exists() && text("弹幕").exists()) break;
+            if(text("TA收取你").exists() && text("你收取TA").exists()) break;
             sleep(500);
         } 
         if(i < 10)
         {
             if(DEBUG) console.log("成功进入好友森林主页", "用时" + i*0.5 + "秒");
             if(epoint[1] == "hand")
-                collection_energy(500);//default 500ms
+                collection_energy(0);//default 500ms
             else
                 help_friends_collection(0);//default 0ms
         }
