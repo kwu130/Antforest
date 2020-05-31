@@ -340,10 +340,10 @@ function entranceFriendsRank()
     if (click(epoint[0].x, epoint[0].y + 20))
     {
         //确认进入了好友森林
-		let i = 0;
+        let i = 0;
         while (i++ < 10)
         {
-            if (text("TA收取你").exists() && text("你收取TA").exists()) break;
+            if (text("看林区").exists() || text("浇水").exists()) break;
             sleep(500);
         } 
         if (i < 10)
