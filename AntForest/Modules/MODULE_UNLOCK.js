@@ -8,9 +8,11 @@ var pin_pas_table = [[550, 1800], [250, 1200], [550, 1200],
 var gesture_pas_table = [[250, 1200], [550, 1200], [850, 1200], 
                         [250, 1500], [550, 1500], [850, 1500], 
                         [250, 1800], [550, 1800], [850, 1800]];
-
-const WIDTH = Math.min(device.width, device.height);
-const HEIGHT = Math.max(device.width, device.height);
+//测试机分辨率为1080*2340
+//不同像分辨率的机型会按比例缩放
+setScreenMetrics(1080, 2340);   //不要修改该行代码
+const WIDTH  = 1080;
+const HEIGHT = 2340;
 
 module.exports = 
 {
@@ -95,7 +97,7 @@ function try_password(pasword, pin_or_gesture)
         for(let i = 0; i < pasword.length; i++)
         {
             click(pin_pas_table[pasword[i]][0], pin_pas_table[pasword[i]][1]);
-            sleep(500);
+            sleep(250);
         }
     }
     else
