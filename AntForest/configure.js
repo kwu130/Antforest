@@ -7,10 +7,11 @@ var config = storages.create("ant_forest_config");
 function set_default_config(){
     var default_conf = {
         password: "",
+        passmode: "pin",
         help_friend: false,
         is_cycle: false,
         start_time: "7:00",
-        end_time: "7:30",
+        end_time: "7:40",
         low_power: false,
     };
     // 储存默认配置到本地
@@ -18,12 +19,14 @@ function set_default_config(){
         config.put(key, default_conf[key]);
     });
 }
+
 //第一次配置参数
 if (!config.contains("password")) {
     toastLog("使用默认配置");
     // 默认执行配置
     set_default_config();
 }
+
 /**
  * 画UI界面
  */
@@ -63,6 +66,14 @@ function draw_view() {
                     <radiogroup id="is_help_fris" orientation="horizontal" margin="0 10">
                         <radio text="是" checked="{{config.get('help_friend')}}" />
                         <radio text="否" checked="{{!config.get('help_friend')}}" marginLeft="20" />
+                    </radiogroup>
+                </vertical>
+                <horizontal w="*" h="1sp" bg="#cccccc" margin="10 0"></horizontal>
+                <vertical w="*" gravity="left" layout_gravity="left" margin="10">
+                    <text text="解锁方式：" textColor="#666666" textSize="14sp" />
+                    <radiogroup id="passmode" orientation="horizontal" margin="0 10">
+                        <radio text="数字解锁" checked="{{config.get('passmode') == 'pin'}}" />
+                        <radio text="图案解锁" checked="{{config.get('passmode') == 'gesture'}}" marginLeft="20" />
                     </radiogroup>
                 </vertical>
                 <horizontal w="*" h="1sp" bg="#cccccc" margin="10 0"></horizontal>
@@ -118,6 +129,7 @@ function draw_view() {
             update("help_friend", false);
         }
     });
+
     //更新是否省电收集save_power
     ui.save_power.setOnCheckedChangeListener(function (radioGroup, id) {
         let index = (id + 1) % radioGroup.getChildCount();
@@ -126,6 +138,17 @@ function draw_view() {
             update("low_power", true);
         } else {
             update("low_power", false);
+        }
+    });
+
+    //更新解锁方式
+    ui.passmode.setOnCheckedChangeListener(function (radioGroup, id) {
+        let index = (id + 1) % radioGroup.getChildCount();
+        //toast(radioGroup.getChildAt(index).getText());
+        if (radioGroup.getChildAt(index).getText() == "数字解锁") {
+            update("passmode", "pin");
+        } else {
+            update("passmode", "gesture");
         }
     });
 
@@ -163,8 +186,8 @@ function draw_view() {
             }
             else
             {
-                update("start_time", format(shour)+":"+format(sminu));
-                update("end_time", format(ehour)+":"+format(eminu));
+                update("start_time", format(shour) + ":" + format(sminu));
+                update("end_time", format(ehour) + ":" + format(eminu));
             }  
         }
         update("password", format(ui.password.getText()));

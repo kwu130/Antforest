@@ -10,6 +10,7 @@ var config = require("./Modules/MODULE_CONFIGURE");
 var g_startTime   = config.startTime;
 var g_endTime     = config.endTime;
 var g_password    = config.password;
+var g_passmode    = config.passmode;
 var g_is_cycle    = config.is_cycle;
 var g_help_friend = config.help_friend;
 var g_low_power   = config.low_power;
@@ -339,10 +340,10 @@ function entranceFriendsRank()
     if (click(epoint[0].x, epoint[0].y + 20))
     {
         //确认进入了好友森林
-		let i = 0;
+        let i = 0;
         while (i++ < 10)
         {
-            if (text("TA收取你").exists() && text("你收取TA").exists()) break;
+            if (text("看林区").exists() || text("浇水").exists()) break;
             sleep(500);
         } 
         if (i < 10)
@@ -440,6 +441,7 @@ function printConfigureInfo()
     console.info("是否帮助好友收取：" + yes_or_no);
     yes_or_no = g_low_power ? "是":"否";
     console.info("循环期间是否省电：" + yes_or_no);
+    console.info("手机屏幕解锁方式：", g_passmode == "pin" ? "数字解锁" : "图案解锁");
     console.log("*********************************");
 }
 /**
@@ -449,7 +451,7 @@ function main()
 {
     var unlock = require("./Modules/MODULE_UNLOCK");
     //解锁设备
-    if (!unlock.unlock(g_password))
+    if (!unlock.unlock(g_password, g_passmode))
     {
         sleep(60 * 1000) // 等待60s后再次尝试
         if (checkTimeIsvalid()) 

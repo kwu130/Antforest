@@ -1,15 +1,22 @@
-//0-9坐标映射表
-var pas_table = [[550, 1800], [250, 1200], [550, 1200], 
-[850, 1200], [250, 1400], [550, 1400], 
-[850, 1400], [250, 1600], [550, 1600], 
-[850, 1600]];
+//数字解锁0-9坐标映射表
+var pin_pas_table = [[550, 1800], [250, 1200], [550, 1200], 
+                    [850, 1200], [250, 1400], [550, 1400], 
+                    [850, 1400], [250, 1600], [550, 1600], 
+                    [850, 1600]];
 
-const WIDTH = Math.min(device.width, device.height);
-const HEIGHT = Math.max(device.width, device.height);
+//图案解锁1-9坐标映射表
+var gesture_pas_table = [[250, 1200], [550, 1200], [850, 1200], 
+                        [250, 1500], [550, 1500], [850, 1500], 
+                        [250, 1800], [550, 1800], [850, 1800]];
+//测试机分辨率为1080*2340
+//不同像分辨率的机型会按比例缩放
+setScreenMetrics(1080, 2340);   //不要修改该行代码
+const WIDTH  = 1080;
+const HEIGHT = 2340;
 
 module.exports = 
 {
-    unlock : function(password)
+    unlock : function(password, pin_or_gesture)
         {
             let i;
             //尝试唤醒屏幕
@@ -47,7 +54,7 @@ module.exports =
                     i = 0;
                     while(is_locked() && i++ < 5)
                     {
-                        try_password(password);
+                        try_password(password, pin_or_gesture);
                         sleep(1000);
                     }
                     if(i >= 5)
@@ -81,12 +88,23 @@ function is_locked()
 /**
  * 模拟解锁
  * @param {*} pasword 锁屏密码
+ * @param {*} pin_or_gesture 解锁方式
  */
-function try_password(pasword)
+function try_password(pasword, pin_or_gesture)
 {
-    for(let i = 0; i < pasword.length; i++)
+    if (pin_or_gesture == "pin")
     {
-        click(pas_table[pasword[i]][0], pas_table[pasword[i]][1]);
-        sleep(500);
+        for(let i = 0; i < pasword.length; i++)
+        {
+            click(pin_pas_table[pasword[i]][0], pin_pas_table[pasword[i]][1]);
+            sleep(250);
+        }
+    }
+    else
+    {
+        let path = [];
+        for(let i = 0; i < pasword.length; i++)
+            path.push(gesture_pas_table[Number(pasword[i]-1)]);
+        gesture(250 * path.length, path);
     }
 }
