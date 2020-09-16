@@ -13,7 +13,7 @@ function set_default_config(){
         start_time: "7:00",
         end_time: "7:40",
         low_power: false,
-        force_retry: true,
+        force_retry: false,
     };
     // 储存默认配置到本地
     Object.keys(default_conf).forEach(function (key) {
@@ -60,7 +60,6 @@ function draw_view() {
                             <radio text="否" checked="{{!config.get('low_power')}}" marginLeft="20" />
                         </radiogroup>
                     </vertical>
-                    <horizontal w="*" h="1sp" bg="#cccccc" margin="10 0"></horizontal>
                     <vertical visibility="{{config.get('is_cycle') ? 'visible' : 'gone'}}" w="*" gravity="left" layout_gravity="left">
                         <text text="循环期间强制重试：" textColor="#666666" textSize="14sp" />
                         <radiogroup id="force_retry" orientation="horizontal" margin="0 10">

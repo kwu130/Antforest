@@ -8,5 +8,5 @@ module.exports =
     is_cycle    : config.get('is_cycle', "false"),
     help_friend : config.get('help_friend', "false"),
     low_power   : config.get('low_power', "false"),
-    force_retry : config.get('force_retry', "true"),
+    force_retry : config.get('force_retry', "false"),
 }
