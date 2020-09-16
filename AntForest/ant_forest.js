@@ -7,6 +7,7 @@ setScreenMetrics(1080, 2340);   //不要修改该行代码
 
 //读取配置文件，设置相应参数
 var config = require("./Modules/MODULE_CONFIGURE");
+const { force_retry } = require("./Modules/MODULE_CONFIGURE");
 var g_startTime   = config.startTime;
 var g_endTime     = config.endTime;
 var g_password    = config.password;
@@ -14,6 +15,7 @@ var g_passmode    = config.passmode;
 var g_is_cycle    = config.is_cycle;
 var g_help_friend = config.help_friend;
 var g_low_power   = config.low_power;
+var g_force_retry = config.force_retry;
 
 //六球坐标值
 var g_energy_postion = [[250, 750], [350, 700], [450, 650], [600, 650], [750, 700], [850, 750]];
@@ -92,7 +94,11 @@ function openAlipay()
     {//未找到，退出脚本
         toast("寻找支付宝首页失败，脚本退出");
         console.error("寻找支付宝首页失败，脚本退出");
-        exit();
+        if (g_force_retry) {
+            tryAgain("寻找支付宝首页失败", 1000);
+        } else {
+            exit();
+        }
     }
     else
     {//找到则点击
@@ -103,7 +109,11 @@ function openAlipay()
             if(!click(pos.centerX(), pos.centerY()))
             {
                 console.error("打开支付宝首页失败，脚本退出");
-                exit();
+                if (g_force_retry) {
+                    tryAgain("打开支付宝首页失败", 1000);
+                } else {
+                    exit();
+                }
             }
         }
         console.log("成功找到支付宝首页");
@@ -128,7 +138,11 @@ function entranceAntForest()
     {
         toast("首页上没有蚂蚁森林，退出脚本");
         console.error("首页上没有蚂蚁森林，退出脚本");
-        exit();
+        if (g_force_retry) {
+            tryAgain("首页上没有蚂蚁森林", 1000);
+        } else {
+            exit();
+        }
     }
     else
     {
@@ -145,8 +159,11 @@ function entranceAntForest()
     if (i >= 10) 
     {
         toast("进入蚂蚁森林主页失败，退出脚本");
-        //exit();
-        tryAgain("进入蚂蚁森林主页失败", 1000);
+        if (g_force_retry) {
+            tryAgain("进入蚂蚁森林主页失败", 1000);
+        } else {
+            exit();
+        }
     }
     else
     {
@@ -171,8 +188,11 @@ function entranceAntForest()
     if (item == null)
     {
         toast("没有找到查看更多好友，退出脚本");
-        //exit();
-        tryAgain("没有找到查看更多好友", 1000);
+        if (g_force_retry) {
+            tryAgain("没有找到查看更多好友", 1000);
+        } else {
+            exit();
+        }
     }
     else
     {
@@ -180,8 +200,11 @@ function entranceAntForest()
         if (!click(pos.centerX(), pos.centerY()))
         {
             toast("进入好友排行榜失败，退出脚本");
-            //exit();
-            tryAgain("进入好友排行榜失败", 1000);
+            if (g_force_retry) {
+                tryAgain("进入好友排行榜失败", 1000);
+            } else {
+                exit();
+            }
         }
         else
         {

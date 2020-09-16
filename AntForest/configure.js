@@ -13,6 +13,7 @@ function set_default_config(){
         start_time: "7:00",
         end_time: "7:40",
         low_power: false,
+        force_retry: true,
     };
     // 储存默认配置到本地
     Object.keys(default_conf).forEach(function (key) {
@@ -57,6 +58,14 @@ function draw_view() {
                         <radiogroup id="save_power" orientation="horizontal" margin="0 10">
                             <radio text="是" checked="{{config.get('low_power')}}" />
                             <radio text="否" checked="{{!config.get('low_power')}}" marginLeft="20" />
+                        </radiogroup>
+                    </vertical>
+                    <horizontal w="*" h="1sp" bg="#cccccc" margin="10 0"></horizontal>
+                    <vertical visibility="{{config.get('is_cycle') ? 'visible' : 'gone'}}" w="*" gravity="left" layout_gravity="left">
+                        <text text="循环期间强制重试：" textColor="#666666" textSize="14sp" />
+                        <radiogroup id="force_retry" orientation="horizontal" margin="0 10">
+                            <radio text="是" checked="{{config.get('force_retry')}}" />
+                            <radio text="否" checked="{{!config.get('force_retry')}}" marginLeft="20" />
                         </radiogroup>
                     </vertical>
                 </vertical>
@@ -140,6 +149,19 @@ function draw_view() {
             update("low_power", false);
         }
     });
+
+    //更新是否强制重试
+    //即在循环期间遇到解锁失败、找不到蚂蚁森林、进入蚂蚁森林失败
+    //等情况下进行不断重试直至成功或超出循环执行时间范围
+    ui.force_retry.setOnCheckedChangeListener(function (radioGroup, id) {
+        let index = (id + 1) % radioGroup.getChildCount();
+        //toast(radioGroup.getChildAt(index).getText());
+        if (radioGroup.getChildAt(index).getText() == "是") {
+            update("force_retry", true);
+        } else {
+            update("force_retry", false);
+        }
+    })
 
     //更新解锁方式
     ui.passmode.setOnCheckedChangeListener(function (radioGroup, id) {
