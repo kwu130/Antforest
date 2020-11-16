@@ -150,7 +150,7 @@ function entranceAntForest()
     while (i++ < 10)
     {
         //if (text("背包").exists() && text("任务").exists()) break;
-        if (text("种树").findOnce() || text("最新动态")) break;
+        if (text("种树").findOnce() || text("最新动态").findOnce()) break;
         sleep(1000);    //进入蚂蚁森林主页的时间较长，因此循环检测的时间间隔设置为1000ms(default 500ms)
     }
     if (i >= 10) 
@@ -178,7 +178,7 @@ function entranceAntForest()
     while (i++ < 10)
     {
         item = text("查看更多好友").findOnce();
-        if(item != null && item.bounds().height() > 100) break;
+        if(item != null && item.bounds().height() > 55) break;
         swipe(520, 1800, 520, 300, 500);
         sleep(200);
     }
