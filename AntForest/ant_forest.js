@@ -57,6 +57,12 @@ function registerExitEvent()
         events.observeKey();
         events.onKeyDown("volume_down", function(event){
             logger("音量下键被按下，脚本退出", 5);
+            //恢复亮度
+            if (mode != -1)
+            {
+                device.setBrightnessMode(mode);
+                device.setBrightness(light);
+            }
             exit();
         });
     });
@@ -278,6 +284,7 @@ function collectionEnergyByPosition(delay)
     if (typeof(delay) == "undefined") delay = 0;
     for (let i = 0; i < g_energy_postion.length; ++i)
     {
+        sleep(delay);
         click(g_energy_postion[i][0], g_energy_postion[i][1]);
     }
 }
@@ -407,6 +414,12 @@ function runDoneOnce(cnt)
  */
 function tryAgain(errmsg, delay)
 {
+    //重试前先恢复亮度
+    if(mode != -1)
+    {
+        device.setBrightnessMode(mode);
+        device.setBrightness(light);
+    }
     var now = new Date();
     var hour = now.getHours();
     var minu = now.getMinutes();
@@ -429,13 +442,6 @@ function tryAgain(errmsg, delay)
 
     engines.execScriptFile(path + "/" + name);
     sleep(delay);
-
-    //恢复亮度
-    if(mode != -1)
-    {
-        device.setBrightnessMode(mode);
-        device.setBrightness(light);
-    }
     exit();
 }
 /**
