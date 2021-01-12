@@ -313,9 +313,9 @@ function getHasEnergyFriends()
     var img = getCaptureImg();
     var hand = null, heart = null;
 
-    //查找可收取能量的小手 "#1da06d"为深绿色 "#ffffff"为白色
-    hand = images.findMultiColors(img, "#1da06d", [[0, -7, "#ffffff"], [0, 10, "#ffffff"]], {
-        region: [1010, 400 , 1, 1800], threshold: 4});
+    //查找可收取能量的小手 "#39876D"为深绿色 "#FFFFFF"为白色
+    hand = images.findMultiColors(img, "#39876D", [[0, -10, "#FFFFFF"], [0, 10, "#FFFFFF"]], {
+        region: [1010, 400 , 1, 1800], threshold: 15});
     if (hand != null)
     {
         console.info("找到**可收取**好友");
@@ -324,8 +324,8 @@ function getHasEnergyFriends()
 
     if (g_help_friend == true)
     {
-        //查找可帮收能量的爱心 "##f99236"为橙色
-        heart = images.findColor(img, "#f99236", {region: [1000, 400 , 10, 1800], threshold: 4});
+        //查找可帮收能量的爱心 "#F99236"为橙色
+        heart = images.findColor(img, "#F99236", {region: [1000, 400 , 10, 1800], threshold: 4});
         if (heart != null)
         {
             console.info("找到**可帮收**好友");
